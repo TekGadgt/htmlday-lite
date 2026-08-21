@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="description"
+      content="Preview and download the tiny website stored in this link."
+    />
+    <title>Your tiny website — HTML Day Lite</title>
+    <script type="module" src="/src/take.js"></script>
+  </head>
+  <body class="receiver-page">
+    <a class="skip-link" href="#preview">Skip to your website preview</a>
+    <header class="site-header compact-header">
+      <a class="wordmark" href="/" aria-label="HTML Day Lite home"
+        >HTML DAY <span>LITE</span></a
+      >
+    </header>
+
+    <main class="receiver-shell">
+      <section class="receiver-copy" aria-labelledby="receiver-title">
+        <p class="eyebrow">It made the trip</p>
+        <h1 id="receiver-title">Here’s your tiny website.</h1>
+        <p>
+          The page traveled inside the QR link. Its HTML was reconstructed in
+          this browser, not uploaded with the request.
+        </p>
+        <p id="receiver-status" class="status" role="status" aria-live="polite">
+          Opening your page…
+        </p>
+        <p id="receiver-error" class="error" role="alert"></p>
+        <div class="actions">
+          <button
+            id="download-html"
+            class="button button-primary"
+            type="button"
+            disabled
+          >
+            Download my website
+          </button>
+          <button id="share-html" class="button" type="button" hidden>
+            Share file
+          </button>
+          <button id="copy-html" class="button" type="button" disabled>
+            Copy source
+          </button>
+        </div>
+      </section>
+
+      <section class="panel receiver-preview" aria-labelledby="preview-title">
+        <div class="panel-heading">
+          <div>
+            <p class="step">Preview</p>
+            <h2 id="preview-title">Your page</h2>
+          </div>
+        </div>
+        <iframe
+          id="preview"
+          title="Preview of your tiny website"
+          sandbox="allow-scripts"
+        ></iframe>
+      </section>
+    </main>
+
+    <footer>
+      <p><a href="/">Make another tiny website</a></p>
+    </footer>
+  </body>
+</html>

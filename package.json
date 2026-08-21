@@ -1,0 +1,32 @@
+{
+  "name": "htmlday-lite",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "fflate": "0.8.3",
+    "qrcode": "1.5.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "eslint": "10.8.1",
+    "jsdom": "30.0.1",
+    "prettier": "3.9.6",
+    "vite": "8.2.2",
+    "vitest": "4.1.11"
+  }
+}

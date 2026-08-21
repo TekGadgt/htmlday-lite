@@ -1,0 +1,9 @@
+minimumReleaseAgeExclude:
+  - vite@8.2.2
+supportedArchitectures:
+  os:
+    - darwin
+    - linux
+  cpu:
+    - arm64
+    - x64

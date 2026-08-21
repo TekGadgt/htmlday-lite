@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Take your tiny website</title>
+  <style>
+    body { max-width:48rem; margin:2rem auto; padding:1rem; font:18px/1.5 system-ui,sans-serif; }
+    iframe { width:100%; min-height:26rem; border:3px solid; }
+    .actions { display:flex; flex-wrap:wrap; gap:.75rem; margin:1rem 0; }
+    button { padding:.75rem 1rem; font:inherit; font-weight:700; border:2px solid; background:white; cursor:pointer; }
+    #error { color:#a00; font-weight:700; }
+  </style>
+</head>
+<body>
+  <h1>Here’s your tiny website.</h1>
+  <p>The page came from the QR fragment. Its HTML was not uploaded with this request.</p>
+  <p id="error" role="alert"></p>
+  <iframe id="preview" title="Your website preview" sandbox="allow-scripts"></iframe>
+  <div class="actions">
+    <button id="download" type="button">Download HTML</button>
+    <button id="share" type="button" hidden>Share file</button>
+    <button id="copy" type="button">Copy source</button>
+  </div>
+  <script>
+    let html = '';
+    const error = document.querySelector('#error');
+
+    function decodeBase64Url(value) {
+      const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+      const binary = atob(padded);
+      return Uint8Array.from(binary, character => character.charCodeAt(0));
+    }
+
+    async function decompressGzip(bytes) {
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+      return new TextDecoder().decode(await new Response(stream).arrayBuffer());
+    }
+
+    function getFile() {
+      return new File([html], 'my-tiny-website.html', { type: 'text/html' });
+    }
+
+    async function load() {
+      try {
+        const payload = location.hash.replace(/^#1\./, '');
+        if (!payload || payload === location.hash) throw new Error('This link does not contain a supported website payload.');
+        html = await decompressGzip(decodeBase64Url(payload));
+        document.querySelector('#preview').srcdoc = html;
+        const shareData = { files: [getFile()], title: 'My tiny website' };
+        if (navigator.canShare?.(shareData)) document.querySelector('#share').hidden = false;
+      } catch (cause) {
+        error.textContent = cause.message;
+      }
+    }
+
+    document.querySelector('#download').addEventListener('click', () => {
+      const url = URL.createObjectURL(getFile());
+      const link = Object.assign(document.createElement('a'), { href:url, download:'my-tiny-website.html' });
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    document.querySelector('#share').addEventListener('click', () => navigator.share({ files:[getFile()], title:'My tiny website' }));
+    document.querySelector('#copy').addEventListener('click', () => navigator.clipboard.writeText(html));
+    load();
+  </script>
+</body>
+</html>
