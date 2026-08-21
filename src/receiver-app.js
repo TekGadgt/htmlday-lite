@@ -1,4 +1,5 @@
 import { decodeArtifact } from "./artifact.js";
+import { createPreviewDocument } from "./preview.js";
 
 function required(document, selector) {
   const element = document.querySelector(selector);
@@ -20,14 +21,25 @@ export function initReceiver({
   const downloadButton = required(document, "#download-html");
   const copyButton = required(document, "#copy-html");
   const shareButton = required(document, "#share-html");
+  const interactionsButton = required(document, "#enable-interactions");
+  preview.setAttribute("sandbox", "");
 
   try {
     const html = decodeArtifact(hash);
-    preview.srcdoc = html;
+    preview.srcdoc = createPreviewDocument(html);
     downloadButton.disabled = false;
     copyButton.disabled = false;
+    interactionsButton.disabled = false;
     shareButton.hidden = !canShareHtml(html);
     status.textContent = "Your website is ready to preview and keep.";
+
+    interactionsButton.addEventListener("click", () => {
+      preview.setAttribute("sandbox", "allow-scripts");
+      preview.srcdoc = createPreviewDocument(html, { allowScripts: true });
+      interactionsButton.disabled = true;
+      status.textContent =
+        "Interactions enabled. Automatic network access remains blocked.";
+    });
 
     downloadButton.addEventListener("click", () => downloadHtml(html));
     copyButton.addEventListener("click", async () => {
@@ -55,5 +67,8 @@ export function initReceiver({
       cause instanceof Error
         ? cause.message
         : "This website link could not be opened.";
+    error.hidden = false;
+    error.tabIndex = -1;
+    error.focus();
   }
 }

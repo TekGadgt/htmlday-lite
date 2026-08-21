@@ -9,7 +9,8 @@ const CUSTOM_HTML = `<!doctype html>
 <title>Ocean page</title>
 <style>body{font:24px system-ui;background:#bdefff;color:#132238;padding:2rem}h1{font-size:4rem}</style>
 <h1>Hello, ocean!</h1>
-<p>I made this tiny website.</p>`;
+<p>I made this tiny website.</p>
+<button onclick="document.body.dataset.changed='yes'">Change it</button>`;
 
 test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   await page.goto("/");
@@ -24,6 +25,12 @@ test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   await expect(
     page.frameLocator("#preview").getByRole("heading", { level: 1 }),
   ).toHaveText("Hello, ocean!");
+  const editorPreview = page.frameLocator("#preview");
+  await editorPreview.getByRole("button", { name: "Change it" }).click();
+  await expect(editorPreview.locator("body")).toHaveAttribute(
+    "data-changed",
+    "yes",
+  );
   await expect(page.getByText("Saved on this device.")).toBeVisible();
   await expect(page.locator("#copy-link")).toBeEnabled();
   await expect(page.locator("#download-qr")).toBeEnabled();
@@ -61,6 +68,20 @@ test("opens the exact receiver fragment and downloads identical HTML", async ({
     page.frameLocator("#preview").getByRole("heading", { level: 1 }),
   ).toHaveText("Hello, ocean!");
 
+  const receiverPreview = page.frameLocator("#preview");
+  await receiverPreview.getByRole("button", { name: "Change it" }).click();
+  await expect(receiverPreview.locator("body")).not.toHaveAttribute(
+    "data-changed",
+    "yes",
+  );
+
+  await page.getByRole("button", { name: "Enable interactions" }).click();
+  await receiverPreview.getByRole("button", { name: "Change it" }).click();
+  await expect(receiverPreview.locator("body")).toHaveAttribute(
+    "data-changed",
+    "yes",
+  );
+
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download my website" }).click();
   const download = await downloadPromise;
@@ -83,6 +104,10 @@ test("explains invalid receiver links without enabling actions", async ({
   await expect(
     page.getByRole("button", { name: "Copy source" }),
   ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Enable interactions" }),
+  ).toBeDisabled();
+  await expect(page.getByRole("alert")).toBeFocused();
 });
 
 test("fits the current viewport without horizontal overflow", async ({

@@ -7,6 +7,7 @@ import {
   MAX_SOURCE_BYTES,
   QR_URL_BUDGET,
 } from "../../src/artifact.js";
+import { STARTER_HTML } from "../../src/starter.js";
 
 describe("artifact codec", () => {
   it("round-trips UTF-8 HTML through the version 1 payload", () => {
@@ -66,6 +67,16 @@ describe("artifact codec", () => {
 
   it("reports a stable error for a damaged payload", () => {
     expect(() => decodeArtifact("#1.not-valid-gzip")).toThrow(
+      "This website link is damaged or incomplete.",
+    );
+  });
+
+  it("rejects standard Base64 characters outside the Base64URL alphabet", () => {
+    const { payload } = encodeArtifact(STARTER_HTML);
+    const nonUrlSafePayload = payload.replaceAll("-", "+").replaceAll("_", "/");
+
+    expect(nonUrlSafePayload).not.toBe(payload);
+    expect(() => decodeArtifact(`#${nonUrlSafePayload}`)).toThrow(
       "This website link is damaged or incomplete.",
     );
   });

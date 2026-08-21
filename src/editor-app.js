@@ -1,4 +1,5 @@
 import { createTakeaway } from "./artifact.js";
+import { createPreviewDocument } from "./preview.js";
 import { STARTER_HTML } from "./starter.js";
 import { clearDraft, loadDraft, saveDraft } from "./storage.js";
 
@@ -42,7 +43,7 @@ export async function initEditor({
     currentTakeaway = takeaway;
 
     editor.value = html;
-    preview.srcdoc = html;
+    preview.srcdoc = createPreviewDocument(html, { allowScripts: true });
     budgetValue.textContent = `${takeaway.urlCharacters} / ${takeaway.budget}`;
     budgetProgress.max = takeaway.budget;
     budgetProgress.value = Math.min(takeaway.urlCharacters, takeaway.budget);

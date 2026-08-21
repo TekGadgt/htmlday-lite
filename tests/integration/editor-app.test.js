@@ -46,7 +46,12 @@ describe("editor app", () => {
     });
 
     expect(document.querySelector("#editor").value).toBe(STARTER_HTML);
-    expect(document.querySelector("#preview").srcdoc).toBe(STARTER_HTML);
+    expect(document.querySelector("#preview").srcdoc).toContain(
+      "<h1>Your name</h1>",
+    );
+    expect(document.querySelector("#preview").srcdoc).toContain(
+      "script-src 'unsafe-inline'",
+    );
     expect(
       document.querySelector("#budget-progress").value,
     ).toBeLessThanOrEqual(900);
@@ -85,7 +90,7 @@ describe("editor app", () => {
     editor.dispatchEvent(new window.Event("input", { bubbles: true }));
     await Promise.resolve();
 
-    expect(document.querySelector("#preview").srcdoc).toBe(html);
+    expect(document.querySelector("#preview").srcdoc).toContain(html);
     expect(JSON.parse(storage.getItem("htmlday-lite:draft")).html).toBe(html);
     expect(document.querySelector("#copy-link").disabled).toBe(true);
     expect(document.querySelector("#download-qr").disabled).toBe(true);

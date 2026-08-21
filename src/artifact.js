@@ -63,6 +63,10 @@ export function decodeArtifact(fragment) {
     throw new Error("This link does not contain a supported website payload.");
   }
 
+  if (!/^[A-Za-z0-9_-]+$/.test(encoded)) {
+    throw new Error("This website link is damaged or incomplete.");
+  }
+
   if (encoded.length > MAX_PAYLOAD_CHARACTERS) {
     throw new Error("This website link is too large to open safely.");
   }

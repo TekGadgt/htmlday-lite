@@ -46,7 +46,20 @@
           <button id="copy-html" class="button" type="button" disabled>
             Copy source
           </button>
+          <button
+            id="enable-interactions"
+            class="button"
+            type="button"
+            aria-describedby="interaction-warning"
+            disabled
+          >
+            Enable interactions
+          </button>
         </div>
+        <p id="interaction-warning" class="fine-print">
+          Only enable scripts for a page you trust. Automatic network access
+          stays blocked.
+        </p>
       </section>
 
       <section class="panel receiver-preview" aria-labelledby="preview-title">
@@ -59,7 +72,7 @@
         <iframe
           id="preview"
           title="Preview of your tiny website"
-          sandbox="allow-scripts"
+          sandbox=""
         ></iframe>
       </section>
     </main>

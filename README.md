@@ -21,9 +21,10 @@ No account, email address, database, or content upload is required.
 1. Read the versioned payload from the URL fragment.
 2. decode Base64URL and decompress gzip locally.
 3. Reject unsupported, damaged, oversized, or over-expanded payloads.
-4. Preview the HTML in a sandboxed iframe.
-5. Download `my-tiny-website.html` or copy its source.
-6. Offer native file sharing only when `navigator.canShare({ files })` confirms support.
+4. Preview HTML and CSS in a sandboxed iframe with scripts disabled.
+5. Deliberately enable interactions for a page the visitor trusts.
+6. Download `my-tiny-website.html` or copy its source.
+7. Offer native file sharing only when `navigator.canShare({ files })` confirms support.
 
 The page content lives after `#` and is not sent in the HTTP request. A production host can still observe ordinary request metadata such as IP address and user agent. This project includes no analytics, cookies, accounts, third-party scripts, or server-side content storage.
 
@@ -39,6 +40,7 @@ index.html                 editor document
      └─ src/receiver-app.js
 
 src/artifact.js            gzip/Base64URL protocol + safety limits
+src/preview.js             rendering-only CSP injection
 src/starter.js             tested starter website
 src/storage.js             versioned local draft persistence
 src/browser-actions.js     download, copy, and Web Share boundaries
@@ -125,9 +127,11 @@ Automated verification covers:
 - realistic incompressible oversize content;
 - source and encoded payload limits;
 - malformed fragment handling;
+- strict Base64URL alphabet validation;
 - starter QR headroom;
 - live preview and browser persistence;
 - QR-disabled/HTML-download fallback;
+- default-static receiver preview and deliberate interaction enablement;
 - receiver preview and byte-identical download;
 - invalid receiver state;
 - desktop/mobile horizontal overflow;
@@ -150,10 +154,14 @@ The editor derives the receiver URL from `window.location`, so no production hos
 ## Security and privacy boundaries
 
 - Decoded HTML is never inserted into the receiver's own DOM.
-- Both previews use `sandbox="allow-scripts"` without `allow-same-origin`.
-- User scripts can run inside the isolated preview but cannot access the parent app's storage or DOM.
+- The editor preview uses `sandbox="allow-scripts"` without `allow-same-origin` so an author can try a tiny interaction.
+- The receiver starts with an empty sandbox grant. Scripts run only after the visitor selects **Enable interactions**.
+- A rendering-only CSP blocks network connections, remote images/fonts/media, forms, nested frames, objects, and base-URL changes in both previews. Inline CSS remains available; inline scripts are added only to the interactive policy.
+- The injected CSP affects previews only. Copied and downloaded HTML remains byte-for-byte identical to the visitor's source, so remote resources may work differently after the file leaves HTML Day Lite.
+- Even after interactions are enabled, scripts cannot access the parent app's storage or DOM and automatic network access remains blocked. A deliberately enabled expensive script can still make its own preview unresponsive.
 - Direct messages, accounts, uploads, analytics, and third-party runtime scripts do not exist in this app.
-- QR payload and reconstructed source sizes are bounded.
+- QR payload and reconstructed source sizes are bounded. The receiver checks gzip's declared output size before inflation and verifies the actual output afterward.
+- These bounds are not a hard process-isolation guarantee: gzip stores its size modulo 2³², so a deliberately forged multi-gigabyte expansion remains a theoretical resource-exhaustion case. Moving decode into a terminable Web Worker is the next hardening step before treating arbitrary internet-supplied fragments as fully hostile.
 - Download and share require explicit user action.
 - The receiver has `noindex, nofollow` metadata.
 
