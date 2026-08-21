@@ -62,11 +62,17 @@
             </div>
             <span class="live-badge">Live preview</span>
           </div>
-          <iframe
-            id="preview"
-            title="Live preview of your tiny website"
-            sandbox="allow-scripts"
-          ></iframe>
+          <div
+            class="preview-frame-shell"
+            tabindex="0"
+            aria-label="live preview surface wrapper"
+          >
+            <iframe
+              id="preview"
+              title="Live preview of your tiny website"
+              sandbox="allow-scripts"
+            ></iframe>
+          </div>
         </div>
       </section>
 
