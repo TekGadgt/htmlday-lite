@@ -286,15 +286,40 @@ test("shows the orientation and creator lane in the approved order", async ({
     "QR code linking to ryanmcgovern.dev",
   );
 
+  await expect(page.locator(".workspace-intro h2")).toHaveCount(0);
+  const creatorLinkHeight = await page
+    .locator(".creator-card a:not(.creator-qr-link)")
+    .evaluate((link) => link.getBoundingClientRect().height);
+  expect(creatorLinkHeight).toBeGreaterThanOrEqual(44);
+
   const order = await page
     .locator(".workspace > *")
     .evaluateAll((nodes) => nodes.map((node) => node.className));
   expect(order).toEqual([
     "workspace-intro",
-    "creator-card",
     "panel editor-panel",
+    "creator-card",
     "panel preview-panel",
   ]);
+
+  const viewport = page.viewportSize();
+  if (viewport && viewport.width <= 850) {
+    const visualOrder = await page
+      .locator(".workspace > *")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => ({
+          className: node.className,
+          top: node.getBoundingClientRect().top,
+        })),
+      );
+    const editorTop = visualOrder.find(({ className }) =>
+      className.includes("editor-panel"),
+    ).top;
+    const creatorTop = visualOrder.find(({ className }) =>
+      className.includes("creator-card"),
+    ).top;
+    expect(creatorTop).toBeGreaterThan(editorTop);
+  }
 });
 
 test("shows focus-visible for the live preview iframe", async ({ page }) => {

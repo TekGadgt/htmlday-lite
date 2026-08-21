@@ -30,17 +30,38 @@
       </section>
 
       <section class="workspace" aria-label="Website maker">
-        <aside class="workspace-intro" aria-labelledby="workspace-intro-title">
+        <aside class="workspace-intro">
           <div>
             <p class="step">Start here</p>
-            <h2 id="workspace-intro-title">
+            <p class="workspace-title">
               Change the code.<br />Watch the page change.
-            </h2>
+            </p>
           </div>
-          <p>
-            Edit the HTML on the left. Your live website updates on the right.
-          </p>
         </aside>
+
+        <div class="panel editor-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="step">Step 1</p>
+              <h2>Your HTML</h2>
+            </div>
+            <button id="reset" class="button button-quiet" type="button">
+              Reset starter
+            </button>
+          </div>
+          <label class="sr-only" for="editor">HTML source</label>
+          <textarea
+            id="editor"
+            spellcheck="false"
+            autocapitalize="off"
+          ></textarea>
+          <p
+            id="save-status"
+            class="status"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </div>
 
         <aside class="creator-card" aria-labelledby="creator-title">
           <div class="creator-copy">
@@ -67,30 +88,6 @@
             ></canvas>
           </a>
         </aside>
-
-        <div class="panel editor-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="step">Step 1</p>
-              <h2>Your HTML</h2>
-            </div>
-            <button id="reset" class="button button-quiet" type="button">
-              Reset starter
-            </button>
-          </div>
-          <label class="sr-only" for="editor">HTML source</label>
-          <textarea
-            id="editor"
-            spellcheck="false"
-            autocapitalize="off"
-          ></textarea>
-          <p
-            id="save-status"
-            class="status"
-            role="status"
-            aria-live="polite"
-          ></p>
-        </div>
 
         <div class="panel preview-panel">
           <div class="panel-heading">

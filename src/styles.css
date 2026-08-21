@@ -111,8 +111,8 @@ footer {
 
 .intro {
   max-width: 58rem;
-  padding: 0.6rem 1rem;
-  margin: 0.6rem auto;
+  padding: 0 1rem;
+  margin: 0 auto;
   border: var(--border);
   background: var(--paper);
   box-shadow: 4px 4px 0 var(--ink);
@@ -151,13 +151,14 @@ h1 {
 .intro > p:last-child,
 .receiver-copy > p {
   max-width: 46rem;
+  margin-bottom: 0;
   font-size: 0.95rem;
   line-height: 1.5;
 }
 
 .workspace {
   display: grid;
-  margin-top: -2rem;
+  margin-top: 0;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.25rem;
   grid-template-areas:
@@ -182,18 +183,12 @@ h1 {
   background: var(--paper);
 }
 
-.workspace-intro h2,
+.workspace-title,
 .creator-card h2 {
   margin: 0;
   font-size: clamp(1.25rem, 2.2vw, 1.7rem);
   line-height: 0.98;
   letter-spacing: -0.06em;
-}
-
-.workspace-intro p:last-child {
-  max-width: 15rem;
-  margin: 0;
-  font-weight: 800;
 }
 
 .creator-card {
@@ -231,7 +226,9 @@ h1 {
 
 .creator-card a:not(.creator-qr-link) {
   display: inline-block;
+  min-height: 2.75rem;
   margin-top: 0.2rem;
+  padding: 0.7rem 0.25rem;
   font-weight: 900;
 }
 
@@ -572,10 +569,6 @@ footer {
 
   .workspace-intro {
     display: block;
-  }
-
-  .workspace-intro p:last-child {
-    display: none;
   }
 
   .creator-card {
