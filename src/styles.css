@@ -109,16 +109,6 @@ footer {
   text-align: right;
 }
 
-.intro {
-  max-width: 58rem;
-  padding: 0 1rem;
-  margin: 0 auto;
-  border: var(--border);
-  background: var(--paper);
-  box-shadow: 4px 4px 0 var(--ink);
-}
-
-.eyebrow,
 .step {
   margin: 0 0 0.45rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -148,7 +138,7 @@ h1 {
   letter-spacing: -0.07em;
 }
 
-.intro > p:last-child,
+.orientation-copy,
 .receiver-copy > p {
   max-width: 46rem;
   margin-bottom: 0;
@@ -179,16 +169,24 @@ h1 {
   align-items: end;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.7rem 1rem;
+  padding: 1rem;
   background: var(--paper);
 }
 
-.workspace-title,
+.workspace-intro h1,
 .creator-card h2 {
   margin: 0;
   font-size: clamp(1.25rem, 2.2vw, 1.7rem);
   line-height: 0.98;
   letter-spacing: -0.06em;
+}
+
+.workspace-intro h1 {
+  margin-top: 0.4rem;
+}
+
+.orientation-copy {
+  margin-top: 0.85rem;
 }
 
 .creator-card {
@@ -563,12 +561,8 @@ footer {
     grid-template-areas:
       "orientation"
       "editor"
-      "creator"
-      "preview";
-  }
-
-  .workspace-intro {
-    display: block;
+      "preview"
+      "creator";
   }
 
   .creator-card {

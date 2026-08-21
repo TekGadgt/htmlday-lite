@@ -268,10 +268,19 @@ test("keeps an entry-point on mobile without horizontal overflow", async ({
   expect(editorVisible).toBeGreaterThan(96);
 });
 
-test("shows the orientation and creator lane in the approved order", async ({
+test("keeps one orientation slogan and the approved responsive order", async ({
   page,
 }) => {
   await page.goto("/");
+
+  await expect(page.locator("h1")).toHaveCount(1);
+  await expect(
+    page.getByText("Change the code.", { exact: false }),
+  ).toHaveCount(1);
+  await expect(page.locator(".intro")).toHaveCount(0);
+  await expect(page.locator(".workspace-intro h1")).toHaveText(
+    /Change the code\.\s*Watch the page change\./,
+  );
 
   await expect(page.locator(".creator-card")).toHaveCSS(
     "background-color",
@@ -286,7 +295,6 @@ test("shows the orientation and creator lane in the approved order", async ({
     "QR code linking to ryanmcgovern.dev",
   );
 
-  await expect(page.locator(".workspace-intro h2")).toHaveCount(0);
   const creatorLinkHeight = await page
     .locator(".creator-card a:not(.creator-qr-link)")
     .evaluate((link) => link.getBoundingClientRect().height);
@@ -298,8 +306,8 @@ test("shows the orientation and creator lane in the approved order", async ({
   expect(order).toEqual([
     "workspace-intro",
     "panel editor-panel",
-    "creator-card",
     "panel preview-panel",
+    "creator-card",
   ]);
 
   const viewport = page.viewportSize();
@@ -315,10 +323,29 @@ test("shows the orientation and creator lane in the approved order", async ({
     const editorTop = visualOrder.find(({ className }) =>
       className.includes("editor-panel"),
     ).top;
+    const previewTop = visualOrder.find(({ className }) =>
+      className.includes("preview-panel"),
+    ).top;
     const creatorTop = visualOrder.find(({ className }) =>
       className.includes("creator-card"),
     ).top;
-    expect(creatorTop).toBeGreaterThan(editorTop);
+    expect(previewTop).toBeGreaterThan(editorTop);
+    expect(creatorTop).toBeGreaterThan(previewTop);
+  } else {
+    const desktopOrder = await page
+      .locator(".workspace > *")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const rect = node.getBoundingClientRect();
+          return { className: node.className, top: rect.top, left: rect.left };
+        }),
+      );
+    const box = (name) =>
+      desktopOrder.find(({ className }) => className.includes(name));
+    expect(box("workspace-intro").top).toBeLessThan(box("editor-panel").top);
+    expect(box("creator-card").top).toBeLessThan(box("preview-panel").top);
+    expect(box("workspace-intro").left).toBeLessThan(box("creator-card").left);
+    expect(box("editor-panel").left).toBeLessThan(box("preview-panel").left);
   }
 });
 

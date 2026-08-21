@@ -20,21 +20,16 @@
     </header>
 
     <main>
-      <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow">Make a tiny website</p>
-        <h1 id="page-title">Change the code.<br />Watch the page change.</h1>
-        <p>
-          Edit the HTML, see it come alive, then scan the QR to take the
-          finished page to your phone.
-        </p>
-      </section>
-
       <section class="workspace" aria-label="Website maker">
-        <aside class="workspace-intro">
+        <aside class="workspace-intro" aria-labelledby="page-title">
           <div>
             <p class="step">Start here</p>
-            <p class="workspace-title">
+            <h1 id="page-title">
               Change the code.<br />Watch the page change.
+            </h1>
+            <p class="orientation-copy">
+              Edit the HTML, see it come alive, then scan the QR to take the
+              finished page to your phone.
             </p>
           </div>
         </aside>
@@ -63,6 +58,23 @@
           ></p>
         </div>
 
+        <div class="panel preview-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="step">Step 2</p>
+              <h2>Live website</h2>
+            </div>
+            <span class="live-badge">Live preview</span>
+          </div>
+          <div class="preview-frame-shell">
+            <iframe
+              id="preview"
+              title="Live preview of your tiny website"
+              sandbox="allow-scripts"
+            ></iframe>
+          </div>
+        </div>
+
         <aside class="creator-card" aria-labelledby="creator-title">
           <div class="creator-copy">
             <p class="step">Made by</p>
@@ -88,23 +100,6 @@
             ></canvas>
           </a>
         </aside>
-
-        <div class="panel preview-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="step">Step 2</p>
-              <h2>Live website</h2>
-            </div>
-            <span class="live-badge">Live preview</span>
-          </div>
-          <div class="preview-frame-shell">
-            <iframe
-              id="preview"
-              title="Live preview of your tiny website"
-              sandbox="allow-scripts"
-            ></iframe>
-          </div>
-        </div>
       </section>
 
       <section class="takeaway" aria-labelledby="takeaway-title">
