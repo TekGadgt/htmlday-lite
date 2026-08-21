@@ -12,6 +12,12 @@ const CUSTOM_HTML = `<!doctype html>
 <p>I made this tiny website.</p>
 <button onclick="document.body.dataset.changed='yes'">Change it</button>`;
 
+function visibleHeight({ top, bottom }, viewportHeight) {
+  const start = Math.max(top, 0);
+  const end = Math.min(bottom, viewportHeight);
+  return Math.max(0, end - start);
+}
+
 test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   await page.goto("/");
 
@@ -119,14 +125,145 @@ test("explains invalid receiver links without enabling actions", async ({
   await expect(page.getByRole("alert")).toBeFocused();
 });
 
-test("fits the current viewport without horizontal overflow", async ({
+test("keeps editor and preview first-viewport usable on desktop", async ({
   page,
 }) => {
   await page.goto("/");
 
-  const dimensions = await page.evaluate(() => ({
-    viewport: document.documentElement.clientWidth,
+  const desktopFrames = [
+    { width: 1366, height: 768 },
+    { width: 1440, height: 900 },
+  ];
+
+  for (const frame of desktopFrames) {
+    await page.setViewportSize(frame);
+    await page.reload();
+
+    const metrics = await page.evaluate(() => {
+      const editorHeading = document
+        .querySelector(".editor-panel .panel-heading h2")
+        ?.getBoundingClientRect();
+      const previewHeading = document
+        .querySelector(".preview-panel .panel-heading h2")
+        ?.getBoundingClientRect();
+      const editorArea = document
+        .querySelector("#editor")
+        ?.getBoundingClientRect();
+      const previewArea = document
+        .querySelector("#preview")
+        ?.getBoundingClientRect();
+      const overflow = {
+        viewport: window.innerWidth,
+        content: document.documentElement.scrollWidth,
+      };
+
+      if (!editorHeading || !previewHeading || !editorArea || !previewArea) {
+        return { error: "missing elements" };
+      }
+
+      return {
+        overflow,
+        editorHeading: { top: editorHeading.top, bottom: editorHeading.bottom },
+        previewHeading: {
+          top: previewHeading.top,
+          bottom: previewHeading.bottom,
+        },
+        editorArea,
+        previewArea,
+        viewportSize: { width: window.innerWidth, height: window.innerHeight },
+      };
+    });
+
+    expect(metrics.error).toBeUndefined();
+    expect(metrics.overflow.content).toBeLessThanOrEqual(
+      metrics.overflow.viewport,
+    );
+    const editorHeadingRect = {
+      top: metrics.editorHeading.top,
+      bottom: metrics.editorHeading.bottom,
+    };
+    const previewHeadingRect = {
+      top: metrics.previewHeading.top,
+      bottom: metrics.previewHeading.bottom,
+    };
+
+    expect(editorHeadingRect.top).toBeGreaterThan(-5);
+    expect(editorHeadingRect.bottom).toBeLessThanOrEqual(
+      metrics.viewportSize.height,
+    );
+    expect(previewHeadingRect.top).toBeGreaterThan(-5);
+    expect(previewHeadingRect.bottom).toBeLessThanOrEqual(
+      metrics.viewportSize.height,
+    );
+
+    const editorVisible = visibleHeight(
+      metrics.editorArea,
+      metrics.viewportSize.height,
+    );
+    const previewVisible = visibleHeight(
+      metrics.previewArea,
+      metrics.viewportSize.height,
+    );
+
+    expect(editorVisible).toBeGreaterThanOrEqual(240);
+    expect(previewVisible).toBeGreaterThanOrEqual(240);
+    expect(editorVisible).toBeGreaterThanOrEqual(previewVisible);
+  }
+});
+
+test("keeps an entry-point on mobile without horizontal overflow", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const info = await page.evaluate(() => ({
+    width: window.innerWidth,
     content: document.documentElement.scrollWidth,
+    height: window.innerHeight,
   }));
-  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
+
+  if (info.width > 520) {
+    test.skip();
+  }
+
+  const metrics = await page.evaluate(() => {
+    const editorHeading = document
+      .querySelector(".editor-panel .panel-heading h2")
+      ?.getBoundingClientRect();
+    const editorArea = document
+      .querySelector("#editor")
+      ?.getBoundingClientRect();
+
+    if (!editorHeading || !editorArea) {
+      return { error: "missing elements" };
+    }
+
+    return {
+      overflow: {
+        viewport: window.innerWidth,
+        content: document.documentElement.scrollWidth,
+      },
+      editorHeading: { top: editorHeading.top, bottom: editorHeading.bottom },
+      editorArea,
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+    };
+  });
+
+  expect(metrics.error).toBeUndefined();
+  expect(metrics.overflow.content).toBeLessThanOrEqual(
+    metrics.overflow.viewport,
+  );
+
+  const editorHeadingRect = {
+    top: metrics.editorHeading.top,
+    bottom: metrics.editorHeading.bottom,
+  };
+  expect(editorHeadingRect.top).toBeGreaterThan(-5);
+  expect(editorHeadingRect.bottom).toBeLessThanOrEqual(metrics.viewport.height);
+
+  const editorVisible = visibleHeight(
+    metrics.editorArea,
+    metrics.viewport.height,
+  );
+  expect(editorVisible).toBeGreaterThan(96);
 });

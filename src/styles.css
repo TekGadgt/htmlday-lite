@@ -76,7 +76,10 @@ footer {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-block: 1rem;
+  padding: 0.9rem 1rem;
+  border: var(--border);
+  background: var(--paper);
+  box-shadow: 4px 4px 0 var(--ink);
 }
 
 .wordmark {
@@ -107,14 +110,18 @@ footer {
 
 .intro {
   max-width: 58rem;
-  padding: clamp(3rem, 8vw, 7rem) 0 clamp(2rem, 5vw, 4rem);
+  padding: 0.95rem 0;
+  margin: 0.9rem auto;
+  border: var(--border);
+  background: var(--paper);
+  box-shadow: 4px 4px 0 var(--ink);
 }
 
 .eyebrow,
 .step {
   margin: 0 0 0.45rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -134,16 +141,16 @@ p {
 }
 
 h1 {
-  margin: 1rem 0;
-  font-size: clamp(3rem, 9vw, 7.5rem);
-  line-height: 0.86;
+  margin: 0.65rem 0 0.5rem;
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  line-height: 0.96;
   letter-spacing: -0.07em;
 }
 
 .intro > p:last-child,
 .receiver-copy > p {
   max-width: 46rem;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  font-size: 1.02rem;
   line-height: 1.5;
 }
 
@@ -172,8 +179,8 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 5.25rem;
-  padding: 1rem 1.25rem;
+  min-height: 4.15rem;
+  padding: 0.8rem 1rem;
   border-bottom: var(--border);
   background: var(--yellow);
 }
@@ -192,15 +199,15 @@ h1 {
 textarea {
   display: block;
   width: 100%;
-  min-height: 34rem;
+  min-height: clamp(18rem, 44vh, 32rem);
   resize: vertical;
-  padding: 1.25rem;
+  padding: 1rem;
   border: 0;
   outline: 0;
   color: #f8f5e8;
   background: #211d19;
   font:
-    0.92rem/1.55 ui-monospace,
+    0.95rem/1.55 ui-monospace,
     SFMono-Regular,
     Menlo,
     Consolas,
@@ -215,7 +222,7 @@ textarea:focus-visible {
 iframe {
   display: block;
   width: 100%;
-  min-height: 34rem;
+  min-height: clamp(18rem, 44vh, 32rem);
   border: 0;
   background: white;
 }
@@ -278,7 +285,7 @@ a:focus-visible {
   min-height: 1.5em;
   margin: 0.7rem 0 0;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
@@ -450,7 +457,19 @@ footer {
 
   textarea,
   iframe {
-    min-height: 26rem;
+    min-height: 23rem;
+  }
+
+  .panel-heading {
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .panel-heading button {
+    max-width: 10.5rem;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    padding: 0.55rem 0.75rem;
   }
 }
 
@@ -462,20 +481,15 @@ footer {
   }
 
   h1 {
-    font-size: clamp(2.7rem, 16vw, 4.4rem);
-  }
-
-  .panel-heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .button {
-    width: 100%;
+    font-size: clamp(1.8rem, 9vw, 2.7rem);
   }
 
   .takeaway {
     box-shadow: 4px 4px 0 var(--ink);
+  }
+
+  .panel-heading button {
+    width: auto;
   }
 }
 
