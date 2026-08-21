@@ -2,6 +2,7 @@ import { createTakeaway } from "./artifact.js";
 import { createPreviewDocument } from "./preview.js";
 import { STARTER_HTML } from "./starter.js";
 import { clearDraft, loadDraft, saveDraft } from "./storage.js";
+import { initPreviewFocusIndicator } from "./preview-focus.js";
 
 function required(document, selector) {
   const element = document.querySelector(selector);
@@ -22,6 +23,7 @@ export async function initEditor({
   const editor = required(document, "#editor");
   const reset = required(document, "#reset");
   const preview = required(document, "#preview");
+  initPreviewFocusIndicator(preview);
   const saveStatus = required(document, "#save-status");
   const budgetValue = required(document, "#budget-value");
   const budgetProgress = required(document, "#budget-progress");

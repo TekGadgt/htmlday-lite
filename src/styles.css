@@ -224,17 +224,17 @@ iframe {
   display: block;
 }
 
-.preview-frame-shell:focus-visible {
-  outline: 4px solid var(--pink);
-  outline-offset: 3px;
-}
-
-.preview-frame-shell iframe {
+#preview {
   display: block;
   width: 100%;
   min-height: clamp(18rem, 44vh, 32rem);
   border: 0;
   background: white;
+}
+
+#preview.preview-focus-visible {
+  outline: 4px solid var(--pink);
+  outline-offset: 3px;
 }
 
 .live-badge {
@@ -271,7 +271,7 @@ iframe {
 .button:focus-visible,
 summary:focus-visible,
 a:focus-visible,
-.preview-frame-shell:focus-visible {
+#preview.preview-focus-visible {
   outline: 4px solid var(--pink);
   outline-offset: 3px;
 }

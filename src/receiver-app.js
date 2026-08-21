@@ -1,5 +1,6 @@
 import { decodeArtifact } from "./artifact.js";
 import { createPreviewDocument } from "./preview.js";
+import { initPreviewFocusIndicator } from "./preview-focus.js";
 
 function required(document, selector) {
   const element = document.querySelector(selector);
@@ -18,6 +19,7 @@ export function initReceiver({
   const status = required(document, "#receiver-status");
   const error = required(document, "#receiver-error");
   const preview = required(document, "#preview");
+  initPreviewFocusIndicator(preview);
   const downloadButton = required(document, "#download-html");
   const copyButton = required(document, "#copy-html");
   const shareButton = required(document, "#share-html");

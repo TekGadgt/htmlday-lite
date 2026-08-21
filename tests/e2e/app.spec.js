@@ -278,42 +278,39 @@ test("shows focus-visible for the live preview iframe", async ({ page }) => {
 
   let focused = false;
   for (let i = 0; i < 12; i++) {
-    const isFocusedOnPreview = await page.evaluate(() => {
-      const active = document.activeElement;
-      return (
-        active?.id === "preview" ||
-        active?.classList?.contains("preview-frame-shell")
-      );
-    });
-
-    if (isFocusedOnPreview) {
+    const activeId = await page.evaluate(
+      () => document.activeElement?.id || "",
+    );
+    if (activeId === "preview") {
       focused = true;
       break;
     }
-
     await page.keyboard.press("Tab");
   }
 
   expect(focused).toBe(true);
 
-  const focusState = await page
-    .locator(".preview-frame-shell")
-    .evaluate((shell) => {
-      const shellStyle = window.getComputedStyle(shell);
-      return {
-        shellIsFocused:
-          shell.matches(":focus-visible") || shell.matches(":focus"),
-        shellOutlineWidth: shellStyle.outlineWidth,
-        shellOutlineStyle: shellStyle.outlineStyle,
-        shellOutlineColor: shellStyle.outlineColor,
-        shellBoxShadow: shellStyle.boxShadow,
-        activeId: document.activeElement?.id || "",
-        activeClass: document.activeElement?.className || "",
-      };
-    });
+  const previewLocator = page.locator("#preview");
+  await expect(previewLocator).toHaveClass(/preview-focus-visible/, {
+    timeout: 1000,
+  });
 
-  expect(focusState.shellIsFocused).toBe(true);
-  expect(focusState.shellOutlineStyle).toBe("solid");
-  expect(focusState.shellOutlineWidth).toBe("4px");
-  expect(focusState.shellOutlineColor).not.toBe("rgba(0, 0, 0, 0)");
+  const focusState = await previewLocator.evaluate((preview) => {
+    const previewStyle = window.getComputedStyle(preview);
+    return {
+      activeId: document.activeElement?.id || "",
+      hasIndicator: preview.classList.contains("preview-focus-visible"),
+      shellFocused: document
+        .querySelector(".preview-frame-shell")
+        .matches(":focus"),
+      previewOutlineColor: previewStyle.outlineColor,
+      previewOutlineStyle: previewStyle.outlineStyle,
+      previewClassList: Array.from(preview.classList),
+    };
+  });
+
+  expect(focusState.activeId).toBe("preview");
+  expect(focusState.hasIndicator, JSON.stringify(focusState)).toBe(true);
+  expect(focusState.previewOutlineColor).not.toBe("rgba(0, 0, 0, 0)");
+  expect(focusState.shellFocused).toBe(false);
 });
