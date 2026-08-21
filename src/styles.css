@@ -6,6 +6,7 @@
   --pink: #ff5c8a;
   --blue: #55c7ff;
   --green: #7de2a8;
+  --purple: #c7a4ff;
   --muted: #665f56;
   --border: 3px solid var(--ink);
   font-family:
@@ -110,8 +111,8 @@ footer {
 
 .intro {
   max-width: 58rem;
-  padding: 0.95rem 0;
-  margin: 0.9rem auto;
+  padding: 0.6rem 1rem;
+  margin: 0.6rem auto;
   border: var(--border);
   background: var(--paper);
   box-shadow: 4px 4px 0 var(--ink);
@@ -141,8 +142,8 @@ p {
 }
 
 h1 {
-  margin: 0.65rem 0 0.5rem;
-  font-size: clamp(2rem, 6vw, 3.4rem);
+  margin: 0.4rem 0 0.35rem;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
   line-height: 0.96;
   letter-spacing: -0.07em;
 }
@@ -150,14 +151,102 @@ h1 {
 .intro > p:last-child,
 .receiver-copy > p {
   max-width: 46rem;
-  font-size: 1.02rem;
+  font-size: 0.95rem;
   line-height: 1.5;
 }
 
 .workspace {
   display: grid;
+  margin-top: -2rem;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 1.25rem;
+  grid-template-areas:
+    "orientation creator"
+    "editor preview";
+}
+
+.workspace-intro,
+.creator-card {
+  min-width: 0;
+  border: var(--border);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+.workspace-intro {
+  grid-area: orientation;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--paper);
+}
+
+.workspace-intro h2,
+.creator-card h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.2vw, 1.7rem);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.workspace-intro p:last-child {
+  max-width: 15rem;
+  margin: 0;
+  font-weight: 800;
+}
+
+.creator-card {
+  grid-area: creator;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--purple);
+}
+
+.creator-card .step {
+  margin-bottom: 0.25rem;
+}
+
+.creator-card p {
+  margin: 0.2rem 0 0;
+  font-weight: 700;
+}
+
+.creator-card .creator-role {
+  margin-top: 0.1rem;
+  font-weight: 900;
+}
+
+.creator-availability {
+  display: inline-block;
+  padding: 0.2rem 0.4rem;
+  border: 2px solid var(--ink);
+  background: white;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.creator-card a:not(.creator-qr-link) {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-weight: 900;
+}
+
+.creator-qr-link {
+  flex: 0 0 5.25rem;
+  padding: 0.35rem;
+  border: 2px solid var(--ink);
+  background: white;
+}
+
+.creator-qr-link canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  image-rendering: pixelated;
 }
 
 .panel,
@@ -170,6 +259,7 @@ h1 {
 }
 
 .panel {
+  grid-area: editor;
   min-width: 0;
   overflow: hidden;
 }
@@ -222,6 +312,10 @@ textarea:focus-visible {
 .preview-frame-shell,
 iframe {
   display: block;
+}
+
+.preview-panel {
+  grid-area: preview;
 }
 
 #preview {
@@ -283,6 +377,17 @@ a:focus-visible,
 .button-quiet {
   box-shadow: none;
   background: transparent;
+}
+
+.button-quiet:hover:not(:disabled),
+.button-quiet:focus-visible:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.button-quiet:active:not(:disabled) {
+  transform: translate(0, 0);
+  box-shadow: 1px 1px 0 var(--ink);
 }
 
 .button:disabled {
@@ -455,6 +560,30 @@ footer {
   .takeaway,
   .receiver-shell {
     grid-template-columns: 1fr;
+  }
+
+  .workspace {
+    grid-template-areas:
+      "orientation"
+      "editor"
+      "creator"
+      "preview";
+  }
+
+  .workspace-intro {
+    display: block;
+  }
+
+  .workspace-intro p:last-child {
+    display: none;
+  }
+
+  .creator-card {
+    align-items: start;
+  }
+
+  .workspace {
+    margin-top: 0;
   }
 
   .qr-card {

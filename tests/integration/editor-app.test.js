@@ -3,6 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { initEditor } from "../../src/editor-app.js";
 import { STARTER_HTML } from "../../src/starter.js";
+import { createStatusController } from "../../src/status.js";
 
 function setFixture() {
   document.body.innerHTML = `
@@ -138,5 +139,46 @@ describe("editor app", () => {
     expect(confirmReset).toHaveBeenCalledOnce();
     expect(editor.value).toBe(STARTER_HTML);
     expect(storage.getItem("htmlday-lite:draft")).toBeNull();
+  });
+
+  it("replaces a reset status timer and cancels it when newer status arrives", () => {
+    vi.useFakeTimers();
+    const element = document.querySelector("#save-status");
+    const status = createStatusController({ element });
+
+    status.setTemporaryStatus("Starter restored.");
+    vi.advanceTimersByTime(900);
+    status.setTemporaryStatus("Starter restored.");
+    vi.advanceTimersByTime(900);
+    expect(element.textContent).toBe("Starter restored.");
+
+    status.setStatus("Saved on this device.");
+    vi.advanceTimersByTime(500);
+    expect(element.textContent).toBe("Saved on this device.");
+    vi.useRealTimers();
+  });
+
+  it("clears the reset message after 1200ms", async () => {
+    vi.useFakeTimers();
+    await initEditor({
+      document,
+      location: new URL("https://example.test/"),
+      storage: memoryStorage(),
+      clipboard: { writeText: vi.fn() },
+      renderQr: vi.fn().mockResolvedValue(undefined),
+      confirmReset: () => true,
+    });
+
+    document.querySelector("#reset").click();
+    expect(document.querySelector("#save-status").textContent).toBe(
+      "Starter restored.",
+    );
+    vi.advanceTimersByTime(1199);
+    expect(document.querySelector("#save-status").textContent).toBe(
+      "Starter restored.",
+    );
+    vi.advanceTimersByTime(1);
+    expect(document.querySelector("#save-status").textContent).toBe("");
+    vi.useRealTimers();
   });
 });

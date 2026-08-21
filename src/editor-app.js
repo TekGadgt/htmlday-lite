@@ -3,6 +3,7 @@ import { createPreviewDocument } from "./preview.js";
 import { STARTER_HTML } from "./starter.js";
 import { clearDraft, loadDraft, saveDraft } from "./storage.js";
 import { initPreviewFocusIndicator } from "./preview-focus.js";
+import { createStatusController } from "./status.js";
 
 function required(document, selector) {
   const element = document.querySelector(selector);
@@ -19,12 +20,14 @@ export async function initEditor({
   downloadHtml,
   downloadQr,
   confirmReset,
+  creatorQr,
 }) {
   const editor = required(document, "#editor");
   const reset = required(document, "#reset");
   const preview = required(document, "#preview");
   initPreviewFocusIndicator(preview);
   const saveStatus = required(document, "#save-status");
+  const status = createStatusController({ element: saveStatus });
   const budgetValue = required(document, "#budget-value");
   const budgetProgress = required(document, "#budget-progress");
   const budgetMessage = required(document, "#budget-message");
@@ -32,6 +35,8 @@ export async function initEditor({
   const downloadHtmlButton = required(document, "#download-html");
   const downloadQrButton = required(document, "#download-qr");
   const canvas = required(document, "#qr");
+
+  if (creatorQr) await renderQr(creatorQr, "https://ryanmcgovern.dev");
 
   const receiverUrl = new URL("/take/", location.href).href;
   let renderGeneration = 0;
@@ -57,9 +62,11 @@ export async function initEditor({
       : "This page is too large for the event QR. Download the HTML instead.";
 
     if (persist) {
-      saveStatus.textContent = saveDraft(storage, html)
-        ? "Saved on this device."
-        : "Preview updated, but this browser could not save the draft.";
+      status.setStatus(
+        saveDraft(storage, html)
+          ? "Saved on this device."
+          : "Preview updated, but this browser could not save the draft.",
+      );
     }
 
     if (takeaway.withinBudget) {
@@ -78,10 +85,11 @@ export async function initEditor({
   copyLink.addEventListener("click", async () => {
     try {
       await clipboard.writeText(currentTakeaway.url);
-      saveStatus.textContent = "QR link copied.";
+      status.setStatus("QR link copied.");
     } catch {
-      saveStatus.textContent =
-        "Could not copy the link. Try downloading the HTML instead.";
+      status.setStatus(
+        "Could not copy the link. Try downloading the HTML instead.",
+      );
     }
   });
 
@@ -91,7 +99,7 @@ export async function initEditor({
   reset.addEventListener("click", () => {
     if (!confirmReset()) return;
     clearDraft(storage);
-    saveStatus.textContent = "Starter restored.";
+    status.setTemporaryStatus("Starter restored.");
     void update(STARTER_HTML);
   });
 }

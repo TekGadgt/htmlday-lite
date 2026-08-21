@@ -268,6 +268,35 @@ test("keeps an entry-point on mobile without horizontal overflow", async ({
   expect(editorVisible).toBeGreaterThan(96);
 });
 
+test("shows the orientation and creator lane in the approved order", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await expect(page.locator(".creator-card")).toHaveCSS(
+    "background-color",
+    "rgb(199, 164, 255)",
+  );
+  await expect(page.locator(".creator-card a").first()).toHaveAttribute(
+    "href",
+    "https://ryanmcgovern.dev",
+  );
+  await expect(page.locator("#creator-qr")).toHaveAttribute(
+    "aria-label",
+    "QR code linking to ryanmcgovern.dev",
+  );
+
+  const order = await page
+    .locator(".workspace > *")
+    .evaluateAll((nodes) => nodes.map((node) => node.className));
+  expect(order).toEqual([
+    "workspace-intro",
+    "creator-card",
+    "panel editor-panel",
+    "panel preview-panel",
+  ]);
+});
+
 test("shows focus-visible for the live preview iframe", async ({ page }) => {
   await page.goto("/");
 

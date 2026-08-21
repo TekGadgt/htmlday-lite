@@ -23,6 +23,7 @@ await initEditor({
   renderQr,
   downloadHtml,
   downloadQr,
+  creatorQr: document.querySelector("#creator-qr"),
   confirmReset: () =>
     window.confirm(
       "Reset the editor and replace your current draft with the starter?",
