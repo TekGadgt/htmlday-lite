@@ -153,6 +153,7 @@ The editor derives the receiver URL from `window.location`, so no production hos
 
 ## Security and privacy boundaries
 
+- Only open HTML Day Lite links you created yourself. A fragment can carry encoded HTML and scripts; if someone else sends a link, close it and do not enable interactions.
 - Decoded HTML is never inserted into the receiver's own DOM.
 - The editor preview uses `sandbox="allow-scripts"` without `allow-same-origin` so an author can try a tiny interaction.
 - The receiver starts with an empty sandbox grant. Scripts run only after the visitor selects **Enable interactions**.

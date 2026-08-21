@@ -282,6 +282,11 @@ a:focus-visible {
   font-weight: 700;
 }
 
+.status:empty,
+.error:empty {
+  display: none;
+}
+
 .error {
   color: #a3152d;
 }
@@ -291,6 +296,14 @@ a:focus-visible {
   padding: 0.55rem 1rem;
   border-top: 2px solid var(--ink);
   background: white;
+}
+
+.safety-note {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border: 3px solid var(--ink);
+  background: var(--yellow);
+  font-weight: 700;
 }
 
 .takeaway {

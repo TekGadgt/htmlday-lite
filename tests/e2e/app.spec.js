@@ -16,6 +16,10 @@ test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   await page.goto("/");
 
   const editor = page.getByLabel("HTML source");
+  await expect(page.locator("#save-status")).toBeHidden();
+  await expect(
+    page.getByText("Don’t open someone else’s HTML Day Lite link."),
+  ).toBeVisible();
   await expect(editor).toHaveValue(/Your name/);
   await expect(
     page.frameLocator("#preview").getByRole("heading", { level: 1 }),
@@ -63,6 +67,11 @@ test("opens the exact receiver fragment and downloads identical HTML", async ({
 
   await expect(
     page.getByText("Your website is ready to preview and keep."),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "If you didn’t make this link, close it and don’t enable interactions.",
+    ),
   ).toBeVisible();
   await expect(
     page.frameLocator("#preview").getByRole("heading", { level: 1 }),
