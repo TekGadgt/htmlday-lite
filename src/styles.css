@@ -81,6 +81,7 @@ footer {
   border: var(--border);
   background: var(--paper);
   box-shadow: 4px 4px 0 var(--ink);
+  margin-bottom: 1.25rem;
 }
 
 .wordmark {
