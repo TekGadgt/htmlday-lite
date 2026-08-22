@@ -87,7 +87,7 @@ The editor blocks QR generation above the target but preserves HTML download. Th
 
 Requirements:
 
-- Node.js `>=22.13.0`
+- Node.js `>=22.23.2`
 - pnpm `11.22.0` (pinned exactly in `packageManager`)
 
 ```sh
