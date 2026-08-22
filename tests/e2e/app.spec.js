@@ -428,6 +428,55 @@ test("keeps receiver copy and preview aligned across desktop and mobile", async 
   }
 });
 
+test("fills the stretched receiver preview panel on desktop", async ({
+  page,
+}) => {
+  const receiver = new URL("/take/", "http://127.0.0.1:4173");
+  const { url } = createTakeaway(CUSTOM_HTML, receiver.href);
+  await page.goto(url);
+
+  const viewport = page.viewportSize();
+  if (!viewport || viewport.width <= 850) test.skip();
+
+  for (const frame of [
+    { width: 1366, height: 768 },
+    { width: 1440, height: 900 },
+    { width: 1859, height: 981 },
+  ]) {
+    await page.setViewportSize(frame);
+    await page.reload();
+    const metrics = await page.evaluate(() => {
+      const panel = document
+        .querySelector(".receiver-preview")
+        ?.getBoundingClientRect();
+      const heading = document
+        .querySelector(".receiver-preview .panel-heading")
+        ?.getBoundingClientRect();
+      const shell = document
+        .querySelector(".receiver-preview .preview-frame-shell")
+        ?.getBoundingClientRect();
+      const iframe = document
+        .querySelector(".receiver-preview iframe")
+        ?.getBoundingClientRect();
+      return { panel, heading, shell, iframe };
+    });
+
+    expect(metrics.panel).not.toBeNull();
+    expect(metrics.heading).not.toBeNull();
+    expect(metrics.shell).not.toBeNull();
+    expect(metrics.iframe).not.toBeNull();
+    expect(metrics.shell.top).toBeGreaterThanOrEqual(
+      metrics.heading.bottom - 1,
+    );
+    expect(metrics.shell.bottom).toBeGreaterThanOrEqual(
+      metrics.panel.bottom - 4,
+    );
+    expect(metrics.iframe.bottom).toBeGreaterThanOrEqual(
+      metrics.panel.bottom - 4,
+    );
+  }
+});
+
 test("shows focus-visible for the live preview iframe", async ({ page }) => {
   await page.goto("/");
 
