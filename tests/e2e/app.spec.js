@@ -349,6 +349,85 @@ test("keeps one orientation slogan and the approved responsive order", async ({
   }
 });
 
+test("keeps receiver copy and preview aligned across desktop and mobile", async ({
+  page,
+}) => {
+  const receiver = new URL("/take/", "http://127.0.0.1:4173");
+  const { url } = createTakeaway(CUSTOM_HTML, receiver.href);
+  await page.goto(url);
+
+  const viewport = page.viewportSize();
+  if (!viewport) throw new Error("Playwright viewport is required");
+
+  const desktopFrames = [
+    { width: 1366, height: 768 },
+    { width: 1440, height: 900 },
+    { width: 1859, height: 981 },
+  ];
+
+  if (viewport.width > 850) {
+    for (const frame of desktopFrames) {
+      await page.setViewportSize(frame);
+      await page.reload();
+      const metrics = await page.evaluate(() => {
+        const copy = document
+          .querySelector(".receiver-copy")
+          ?.getBoundingClientRect();
+        const preview = document
+          .querySelector(".receiver-preview")
+          ?.getBoundingClientRect();
+        const heading = document
+          .querySelector(".receiver-preview .panel-heading h2")
+          ?.getBoundingClientRect();
+        const content = document
+          .querySelector("#preview")
+          ?.getBoundingClientRect();
+        return {
+          overflow: document.documentElement.scrollWidth <= window.innerWidth,
+          copy,
+          preview,
+          heading,
+          content,
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+        };
+      });
+
+      expect(metrics.overflow).toBe(true);
+      expect(metrics.copy).not.toBeNull();
+      expect(metrics.preview).not.toBeNull();
+      expect(metrics.heading).not.toBeNull();
+      expect(metrics.content).not.toBeNull();
+      expect(metrics.preview.left).toBeGreaterThan(metrics.copy.right);
+      expect(
+        Math.abs(metrics.copy.top - metrics.preview.top),
+      ).toBeLessThanOrEqual(2);
+      expect(metrics.heading.top).toBeGreaterThanOrEqual(0);
+      expect(metrics.heading.bottom).toBeLessThanOrEqual(
+        metrics.viewport.height,
+      );
+      expect(metrics.content.top).toBeLessThan(metrics.viewport.height);
+    }
+  } else {
+    const metrics = await page.evaluate(() => {
+      const copy = document
+        .querySelector(".receiver-copy")
+        ?.getBoundingClientRect();
+      const preview = document
+        .querySelector(".receiver-preview")
+        ?.getBoundingClientRect();
+      return {
+        overflow: document.documentElement.scrollWidth <= window.innerWidth,
+        copy,
+        preview,
+      };
+    });
+    expect(metrics.overflow).toBe(true);
+    expect(metrics.copy).not.toBeNull();
+    expect(metrics.preview).not.toBeNull();
+    expect(metrics.preview.top).toBeGreaterThan(metrics.copy.bottom);
+  }
+});
+
 test("shows focus-visible for the live preview iframe", async ({ page }) => {
   await page.goto("/");
 

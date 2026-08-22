@@ -255,9 +255,12 @@ h1 {
 }
 
 .panel {
-  grid-area: editor;
   min-width: 0;
   overflow: hidden;
+}
+
+.editor-panel {
+  grid-area: editor;
 }
 
 .panel-heading {
