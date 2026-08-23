@@ -21,12 +21,12 @@ function visibleHeight({ top, bottom }, viewportHeight) {
 test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   await page.goto("/");
 
-  const editor = page.getByLabel("HTML source");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
   await expect(page.locator("#save-status")).toBeHidden();
   await expect(
     page.getByText("Don’t open someone else’s HTML Day Lite link."),
   ).toBeVisible();
-  await expect(editor).toHaveValue(/Your name/);
+  await expect(editor).toContainText(/Your name/);
   await expect(
     page.frameLocator("#preview").getByRole("heading", { level: 1 }),
   ).toHaveText("Your name");
@@ -60,7 +60,35 @@ test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   expect(qrBytes.subarray(1, 4).toString()).toBe("PNG");
 
   await page.reload();
-  await expect(editor).toHaveValue(CUSTOM_HTML);
+  await expect(editor).toContainText("Hello, ocean!");
+});
+
+test("renders highlighted HTML and keeps skip-link keyboard focus", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await expect(page.locator("#editor .cm-line span").first()).toBeVisible();
+  const skipLink = page.getByRole("link", { name: "Skip to the HTML editor" });
+  await skipLink.focus();
+  await skipLink.press("Enter");
+  await expect(
+    page.getByRole("textbox", { name: "HTML source" }),
+  ).toBeFocused();
+
+  await page
+    .getByRole("textbox", { name: "HTML source" })
+    .fill("<h1>Changed</h1>");
+  await expect(
+    page.frameLocator("#preview").getByRole("heading", { level: 1 }),
+  ).toHaveText("Changed");
+  await expect(page.locator("#budget-value")).toContainText("/ 900");
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Reset starter" }).click();
+  await expect(
+    page.getByRole("textbox", { name: "HTML source" }),
+  ).toContainText("Your name");
 });
 
 test("opens the exact receiver fragment and downloads identical HTML", async ({

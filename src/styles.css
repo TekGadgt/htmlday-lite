@@ -37,7 +37,7 @@ body {
 }
 
 button,
-textarea {
+#editor {
   font: inherit;
 }
 
@@ -285,27 +285,28 @@ h1 {
   margin: 0;
 }
 
-textarea {
-  display: block;
-  width: 100%;
+#editor {
   min-height: clamp(18rem, 44vh, 32rem);
-  resize: vertical;
-  padding: 1rem;
-  border: 0;
-  outline: 0;
-  color: #f8f5e8;
+  overflow: auto;
   background: #211d19;
-  font:
-    0.95rem/1.55 ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Consolas,
-    monospace;
-  tab-size: 2;
 }
 
-textarea:focus-visible {
-  box-shadow: inset 0 0 0 4px var(--pink);
+#editor .cm-editor {
+  min-height: inherit;
+}
+
+#editor .cm-scroller {
+  min-height: inherit;
+  overflow: auto;
+}
+
+#editor .cm-focused {
+  outline: 4px solid var(--pink);
+  outline-offset: -4px;
+}
+
+#editor .cm-content {
+  min-height: calc(clamp(18rem, 44vh, 32rem) - 2rem);
 }
 
 .preview-frame-shell,

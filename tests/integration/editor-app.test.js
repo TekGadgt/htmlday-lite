@@ -7,7 +7,7 @@ import { createStatusController } from "../../src/status.js";
 
 function setFixture() {
   document.body.innerHTML = `
-    <textarea id="editor"></textarea>
+    <div id="editor"></div>
     <iframe id="preview"></iframe>
     <p id="save-status"></p>
     <button id="reset"></button>
@@ -19,6 +19,29 @@ function setFixture() {
     <button id="download-qr"></button>
     <canvas id="qr"></canvas>
   `;
+}
+
+let testEditor;
+
+function createTestEditor({ initialValue, onChange }) {
+  let value = initialValue;
+  testEditor = {
+    getValue: () => value,
+    setValue: (next) => {
+      value = next;
+    },
+    focus: vi.fn(),
+    destroy: vi.fn(),
+    input: (next) => {
+      value = next;
+      onChange(next);
+    },
+  };
+  return testEditor;
+}
+
+function initForTest(options) {
+  return initEditor({ ...options, createEditor: createTestEditor });
 }
 
 function memoryStorage() {
@@ -37,7 +60,7 @@ describe("editor app", () => {
   it("loads the starter, previews it, and renders an in-budget QR", async () => {
     const renderQr = vi.fn().mockResolvedValue(undefined);
 
-    await initEditor({
+    await initForTest({
       document,
       location: new URL("https://example.test/"),
       storage: memoryStorage(),
@@ -46,7 +69,7 @@ describe("editor app", () => {
       confirmReset: () => true,
     });
 
-    expect(document.querySelector("#editor").value).toBe(STARTER_HTML);
+    expect(testEditor.getValue()).toBe(STARTER_HTML);
     expect(document.querySelector("#preview").srcdoc).toContain(
       "<h1>Your name</h1>",
     );
@@ -69,7 +92,7 @@ describe("editor app", () => {
   it("updates the preview and storage, then blocks an oversized QR", async () => {
     const storage = memoryStorage();
     const renderQr = vi.fn().mockResolvedValue(undefined);
-    await initEditor({
+    await initForTest({
       document,
       location: new URL("https://example.test/"),
       storage,
@@ -86,9 +109,7 @@ describe("editor app", () => {
       return String.fromCharCode(33 + ((state >>> 0) % 90));
     }).join("");
     const html = `<h1>${highEntropyText}</h1>`;
-    const editor = document.querySelector("#editor");
-    editor.value = html;
-    editor.dispatchEvent(new window.Event("input", { bubbles: true }));
+    testEditor.input(html);
     await Promise.resolve();
 
     expect(document.querySelector("#preview").srcdoc).toContain(html);
@@ -107,7 +128,7 @@ describe("editor app", () => {
     const downloadHtml = vi.fn();
     const downloadQr = vi.fn();
     const confirmReset = vi.fn(() => true);
-    await initEditor({
+    await initForTest({
       document,
       location: new URL("https://example.test/"),
       storage,
@@ -130,14 +151,12 @@ describe("editor app", () => {
     document.querySelector("#download-qr").click();
     expect(downloadQr).toHaveBeenCalledWith(document.querySelector("#qr"));
 
-    const editor = document.querySelector("#editor");
-    editor.value = "<h1>Changed</h1>";
-    editor.dispatchEvent(new window.Event("input", { bubbles: true }));
+    testEditor.input("<h1>Changed</h1>");
     document.querySelector("#reset").click();
     await Promise.resolve();
 
     expect(confirmReset).toHaveBeenCalledOnce();
-    expect(editor.value).toBe(STARTER_HTML);
+    expect(testEditor.getValue()).toBe(STARTER_HTML);
     expect(storage.getItem("htmlday-lite:draft")).toBeNull();
   });
 
@@ -160,7 +179,7 @@ describe("editor app", () => {
 
   it("clears the reset message after 1200ms", async () => {
     vi.useFakeTimers();
-    await initEditor({
+    await initForTest({
       document,
       location: new URL("https://example.test/"),
       storage: memoryStorage(),
