@@ -45,6 +45,19 @@ export async function initEditor({
   let currentHtml = "";
   let currentTakeaway;
   let editor;
+  let previewUpdateQueued = false;
+  let pendingPreviewDocument = "";
+
+  function updatePreview(documentHtml) {
+    pendingPreviewDocument = documentHtml;
+    if (previewUpdateQueued) return;
+
+    previewUpdateQueued = true;
+    Promise.resolve().then(() => {
+      previewUpdateQueued = false;
+      preview.srcdoc = pendingPreviewDocument;
+    });
+  }
 
   async function update(html, { persist = false } = {}) {
     const takeaway = createTakeaway(html, receiverUrl);
@@ -53,7 +66,7 @@ export async function initEditor({
     currentTakeaway = takeaway;
 
     editor.setValue(html);
-    preview.srcdoc = createPreviewDocument(html, { allowScripts: true });
+    updatePreview(createPreviewDocument(html, { allowScripts: true }));
     budgetValue.textContent = `${takeaway.urlCharacters} / ${takeaway.budget}`;
     budgetProgress.max = takeaway.budget;
     budgetProgress.value = Math.min(takeaway.urlCharacters, takeaway.budget);
