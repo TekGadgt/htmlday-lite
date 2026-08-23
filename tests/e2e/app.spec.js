@@ -76,12 +76,21 @@ test("renders highlighted HTML and keeps skip-link keyboard focus", async ({
     page.getByRole("textbox", { name: "HTML source" }),
   ).toBeFocused();
 
-  await page
-    .getByRole("textbox", { name: "HTML source" })
-    .fill("<h1>Changed</h1>");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.press("ControlOrMeta+A");
+  await editor.fill("<h1>First edit</h1>");
+  await editor.press("ControlOrMeta+A");
+  await editor.fill("<h1>Changed</h1>");
+  const changedPreview = page.frameLocator("#preview");
+  await expect(changedPreview.getByRole("heading", { level: 1 })).toHaveCount(
+    1,
+  );
+  await expect(changedPreview.getByRole("heading", { level: 1 })).toHaveText(
+    "Changed",
+  );
   await expect(
-    page.frameLocator("#preview").getByRole("heading", { level: 1 }),
-  ).toHaveText("Changed");
+    changedPreview.getByRole("heading", { name: "Your name" }),
+  ).toHaveCount(0);
   await expect(page.locator("#budget-value")).toContainText("/ 900");
 
   page.once("dialog", (dialog) => dialog.accept());

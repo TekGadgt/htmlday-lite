@@ -26,7 +26,7 @@ export async function initEditor({
 }) {
   const editorMount = required(document, "#editor");
   const reset = required(document, "#reset");
-  const preview = required(document, "#preview");
+  let preview = required(document, "#preview");
   initPreviewFocusIndicator(preview);
   const saveStatus = required(document, "#save-status");
   const status = createStatusController({ element: saveStatus });
@@ -55,6 +55,21 @@ export async function initEditor({
     previewUpdateQueued = true;
     Promise.resolve().then(() => {
       previewUpdateQueued = false;
+      const wasFocused = document.activeElement === preview;
+      const nextPreview = document.createElement("iframe");
+      for (const attribute of preview.attributes) {
+        nextPreview.setAttribute(attribute.name, attribute.value);
+      }
+
+      // Remove the old browsing context before exposing the new one. Mobile
+      // Chrome can keep the old srcdoc document in the frame tree while a
+      // same-element navigation is still settling.
+      const previewParent = preview.parentElement;
+      preview.remove();
+      previewParent?.append(nextPreview);
+      preview = nextPreview;
+      initPreviewFocusIndicator(preview);
+      if (wasFocused) preview.focus();
       preview.srcdoc = pendingPreviewDocument;
     });
   }
