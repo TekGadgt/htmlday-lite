@@ -1,139 +1,168 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Write a tiny HTML website, see it change, and take it home with a QR code."
+    />
+    <title>HTML Day Lite — Make a tiny website</title>
+    <script type="module" src="/src/main.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Write a tiny HTML website, see it change, and take it home with a QR code." />
-  <title>HTML Day Lite — Make a tiny website</title>
-  <script type="module" src="/src/main.js"></script>
-</head>
+  <body>
+    <a class="skip-link" href="#editor">Skip to the HTML editor</a>
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="HTML Day Lite home"
+        >HTML DAY <span>LITE</span></a
+      >
+      <p>One file. Your words. A website you can keep.</p>
+    </header>
 
-<body>
-  <a class="skip-link" href="#editor">Skip to the HTML editor</a>
-  <header class="site-header">
-    <a class="wordmark" href="/" aria-label="HTML Day Lite home">HTML DAY <span>LITE</span></a>
-    <p>One file. Your words. A website you can keep.</p>
-  </header>
-
-  <main>
-    <section class="workspace" aria-label="Website maker">
-      <aside class="workspace-intro" aria-labelledby="page-title">
-        <div>
-          <p class="step">Start here</p>
-          <h1 id="page-title">
-            Change the code.<br />Watch the page change.
-          </h1>
-          <p class="orientation-copy">
-            Edit the HTML, see it come alive, then scan the QR to take the
-            finished page to your phone.
-          </p>
-        </div>
-      </aside>
-
-      <div class="panel editor-panel">
-        <div class="panel-heading">
+    <main>
+      <section class="workspace" aria-label="Website maker">
+        <aside class="workspace-intro" aria-labelledby="page-title">
           <div>
-            <p class="step">Step 1</p>
-            <h2>Your HTML</h2>
+            <p class="step">Start here</p>
+            <h1 id="page-title">
+              Change the code.<br />Watch the page change.
+            </h1>
+            <p class="orientation-copy">
+              Edit the HTML, see it come alive, then scan the QR to take the
+              finished page to your phone.
+            </p>
           </div>
-          <button id="reset" class="button button-quiet" type="button">
-            Reset starter
-          </button>
-        </div>
-        <label class="sr-only" for="editor">HTML source</label>
-        <textarea id="editor" spellcheck="false" autocapitalize="off"></textarea>
-        <p id="save-status" class="status" role="status" aria-live="polite"></p>
-      </div>
+        </aside>
 
-      <div class="panel preview-panel">
-        <div class="panel-heading">
-          <div>
-            <p class="step">Step 2</p>
-            <h2>Live website</h2>
+        <div class="panel editor-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="step">Step 1</p>
+              <h2>Your HTML</h2>
+            </div>
+            <button id="reset" class="button button-quiet" type="button">
+              Reset starter
+            </button>
           </div>
-          <span class="live-badge">Live preview</span>
+          <div id="editor"></div>
+          <p
+            id="save-status"
+            class="status"
+            role="status"
+            aria-live="polite"
+          ></p>
         </div>
-        <div class="preview-frame-shell">
-          <iframe id="preview" title="Live preview of your tiny website" sandbox="allow-scripts"></iframe>
-        </div>
-      </div>
 
-      <aside class="creator-card" aria-labelledby="creator-title">
-        <div class="creator-copy">
-          <p class="step">Made by</p>
-          <h2 id="creator-title">Ryan McGovern</h2>
-          <p class="creator-role">Engineer &amp; Community Organizer</p>
-          <p>I build software and communities.</p>
-          <p class="creator-availability">Available for hire</p>
-          <a href="https://ryanmcgovern.dev" aria-label="Visit Ryan McGovern's website">
-            ryanmcgovern.dev
+        <div class="panel preview-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="step">Step 2</p>
+              <h2>Live website</h2>
+            </div>
+            <span class="live-badge">Live preview</span>
+          </div>
+          <div class="preview-frame-shell">
+            <iframe
+              id="preview"
+              title="Live preview of your tiny website"
+              sandbox="allow-scripts"
+            ></iframe>
+          </div>
+        </div>
+
+        <aside class="creator-card" aria-labelledby="creator-title">
+          <div class="creator-copy">
+            <p class="step">Made by</p>
+            <h2 id="creator-title">Ryan McGovern</h2>
+            <p class="creator-role">Engineer &amp; Community Organizer</p>
+            <p>I build software and communities.</p>
+            <p class="creator-availability">Available for hire</p>
+            <a
+              href="https://ryanmcgovern.dev"
+              aria-label="Visit Ryan McGovern's website"
+            >
+              ryanmcgovern.dev
+            </a>
+          </div>
+          <a
+            class="creator-qr-link"
+            href="https://ryanmcgovern.dev"
+            aria-label="Open Ryan McGovern's website"
+          >
+            <canvas
+              id="creator-qr"
+              aria-label="QR code linking to ryanmcgovern.dev"
+            ></canvas>
           </a>
-        </div>
-        <a class="creator-qr-link" href="https://ryanmcgovern.dev" aria-label="Open Ryan McGovern's website">
-          <canvas id="creator-qr" aria-label="QR code linking to ryanmcgovern.dev"></canvas>
-        </a>
-      </aside>
-    </section>
+        </aside>
+      </section>
 
-    <section class="takeaway" aria-labelledby="takeaway-title">
-      <div class="takeaway-copy">
-        <p class="step">Step 3</p>
-        <h2 id="takeaway-title">Take it with you</h2>
-        <p>
-          Your page is compressed into the QR in this browser. The HTML is not
-          uploaded to a server.
-        </p>
-        <p class="safety-note">
-          <strong>Only open links you made yourself.</strong> Don’t open
-          someone else’s HTML Day Lite link. It can contain encoded HTML and
-          scripts.
-        </p>
+      <section class="takeaway" aria-labelledby="takeaway-title">
+        <div class="takeaway-copy">
+          <p class="step">Step 3</p>
+          <h2 id="takeaway-title">Take it with you</h2>
+          <p>
+            Your page is compressed into the QR in this browser. The HTML is not
+            uploaded to a server.
+          </p>
+          <p class="safety-note">
+            <strong>Only open links you made yourself.</strong> Don’t open
+            someone else’s HTML Day Lite link. It can contain encoded HTML and
+            scripts.
+          </p>
 
-        <div class="budget" aria-labelledby="budget-label">
-          <div class="budget-row">
-            <span id="budget-label">QR size</span>
-            <strong id="budget-value">Preparing…</strong>
+          <div class="budget" aria-labelledby="budget-label">
+            <div class="budget-row">
+              <span id="budget-label">QR size</span>
+              <strong id="budget-value">Preparing…</strong>
+            </div>
+            <progress id="budget-progress" max="900" value="0">
+              0 of 900 URL characters
+            </progress>
+            <p
+              id="budget-message"
+              class="status"
+              role="status"
+              aria-live="polite"
+            ></p>
           </div>
-          <progress id="budget-progress" max="900" value="0">
-            0 of 900 URL characters
-          </progress>
-          <p id="budget-message" class="status" role="status" aria-live="polite"></p>
+
+          <div class="actions">
+            <button id="copy-link" class="button button-primary" type="button">
+              Copy QR link
+            </button>
+            <button id="download-html" class="button" type="button">
+              Download HTML
+            </button>
+            <button id="download-qr" class="button" type="button">
+              Download QR
+            </button>
+          </div>
         </div>
 
-        <div class="actions">
-          <button id="copy-link" class="button button-primary" type="button">
-            Copy QR link
-          </button>
-          <button id="download-html" class="button" type="button">
-            Download HTML
-          </button>
-          <button id="download-qr" class="button" type="button">
-            Download QR
-          </button>
+        <div class="qr-card" id="qr-card">
+          <canvas
+            id="qr"
+            aria-label="QR code containing your tiny website"
+          ></canvas>
+          <p>Scan with your phone’s camera</p>
         </div>
-      </div>
+      </section>
 
-      <div class="qr-card" id="qr-card">
-        <canvas id="qr" aria-label="QR code containing your tiny website"></canvas>
-        <p>Scan with your phone’s camera</p>
-      </div>
-    </section>
+      <details class="privacy">
+        <summary>How does the QR work?</summary>
+        <p>
+          The page is compressed and stored after the <code>#</code> in the QR
+          link. Browsers do not send that fragment to the receiver server,
+          although the host can still see ordinary request metadata such as an
+          IP address.
+        </p>
+      </details>
+    </main>
 
-    <details class="privacy">
-      <summary>How does the QR work?</summary>
-      <p>
-        The page is compressed and stored after the <code>#</code> in the QR
-        link. Browsers do not send that fragment to the receiver server,
-        although the host can still see ordinary request metadata such as an
-        IP address.
-      </p>
-    </details>
-  </main>
-
-  <footer>
-    <p>HTML Day Lite · Made for curious people and small websites.</p>
-  </footer>
-</body>
-
+    <footer>
+      <p>HTML Day Lite · Made for curious people and small websites.</p>
+    </footer>
+  </body>
 </html>

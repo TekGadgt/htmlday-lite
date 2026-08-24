@@ -9,12 +9,14 @@ No account, email address, database, or content upload is required.
 ### Editor — `/`
 
 1. Start with a compact, readable HTML page.
-2. Edit the source in a plain textarea.
+2. Edit the source in the CodeMirror HTML editor, with native color pickers for CSS colors in `<style>` blocks and inline `style` attributes.
 3. See the page update in a sandboxed iframe.
 4. Watch the complete receiver URL against a 900-character event target.
 5. Scan, copy, or download the QR while the page is within budget.
 6. Download the HTML at any size.
 7. Recover the latest draft from versioned browser storage after a refresh.
+
+The color picker uses the maintained Replit CodeMirror extension. Native color inputs provide limited alpha support; the editor intentionally does not add custom alpha controls.
 
 ### Receiver — `/take/`
 

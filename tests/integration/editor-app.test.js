@@ -7,7 +7,7 @@ import { createStatusController } from "../../src/status.js";
 
 function setFixture() {
   document.body.innerHTML = `
-    <textarea id="editor"></textarea>
+    <div id="editor"></div>
     <iframe id="preview"></iframe>
     <p id="save-status"></p>
     <button id="reset"></button>
@@ -19,6 +19,29 @@ function setFixture() {
     <button id="download-qr"></button>
     <canvas id="qr"></canvas>
   `;
+}
+
+let testEditor;
+
+function createTestEditor({ initialValue, onChange }) {
+  let value = initialValue;
+  testEditor = {
+    getValue: () => value,
+    setValue: vi.fn((next) => {
+      value = next;
+    }),
+    focus: vi.fn(),
+    destroy: vi.fn(),
+    input: (next) => {
+      value = next;
+      onChange(next);
+    },
+  };
+  return testEditor;
+}
+
+function initForTest(options) {
+  return initEditor({ ...options, createEditor: createTestEditor });
 }
 
 function memoryStorage() {
@@ -37,7 +60,7 @@ describe("editor app", () => {
   it("loads the starter, previews it, and renders an in-budget QR", async () => {
     const renderQr = vi.fn().mockResolvedValue(undefined);
 
-    await initEditor({
+    await initForTest({
       document,
       location: new URL("https://example.test/"),
       storage: memoryStorage(),
@@ -46,7 +69,7 @@ describe("editor app", () => {
       confirmReset: () => true,
     });
 
-    expect(document.querySelector("#editor").value).toBe(STARTER_HTML);
+    expect(testEditor.getValue()).toBe(STARTER_HTML);
     expect(document.querySelector("#preview").srcdoc).toContain(
       "<h1>Your name</h1>",
     );
@@ -69,7 +92,7 @@ describe("editor app", () => {
   it("updates the preview and storage, then blocks an oversized QR", async () => {
     const storage = memoryStorage();
     const renderQr = vi.fn().mockResolvedValue(undefined);
-    await initEditor({
+    await initForTest({
       document,
       location: new URL("https://example.test/"),
       storage,
@@ -86,9 +109,7 @@ describe("editor app", () => {
       return String.fromCharCode(33 + ((state >>> 0) % 90));
     }).join("");
     const html = `<h1>${highEntropyText}</h1>`;
-    const editor = document.querySelector("#editor");
-    editor.value = html;
-    editor.dispatchEvent(new window.Event("input", { bubbles: true }));
+    testEditor.input(html);
     await Promise.resolve();
 
     expect(document.querySelector("#preview").srcdoc).toContain(html);
@@ -101,13 +122,53 @@ describe("editor app", () => {
     expect(renderQr).toHaveBeenCalledOnce();
   });
 
+  it("keeps exactly one preview frame when updates are queued together", async () => {
+    await initForTest({
+      document,
+      location: new URL("https://example.test/"),
+      storage: memoryStorage(),
+      clipboard: { writeText: vi.fn() },
+      renderQr: vi.fn().mockResolvedValue(undefined),
+      confirmReset: () => true,
+    });
+
+    const initialPreview = document.querySelector("#preview");
+    testEditor.input("<h1>First</h1>");
+    testEditor.input("<h1>Second</h1>");
+    await Promise.resolve();
+
+    expect(document.querySelectorAll("iframe")).toHaveLength(1);
+    expect(document.querySelector("#preview")).toBe(initialPreview);
+    expect(document.querySelector("#preview").srcdoc).toContain("Second");
+  });
+
+  it("does not write back to the editor during user or initial updates", async () => {
+    await initForTest({
+      document,
+      location: new URL("https://example.test/"),
+      storage: memoryStorage(),
+      clipboard: { writeText: vi.fn() },
+      renderQr: vi.fn().mockResolvedValue(undefined),
+      confirmReset: () => true,
+    });
+
+    expect(testEditor.setValue).not.toHaveBeenCalled();
+    testEditor.input("<h1>User edit</h1>");
+    await Promise.resolve();
+    expect(testEditor.setValue).not.toHaveBeenCalled();
+
+    document.querySelector("#reset").click();
+    await Promise.resolve();
+    expect(testEditor.setValue).toHaveBeenCalledWith(STARTER_HTML);
+  });
+
   it("copies the current link, downloads the page, and confirms before reset", async () => {
     const storage = memoryStorage();
     const clipboard = { writeText: vi.fn().mockResolvedValue(undefined) };
     const downloadHtml = vi.fn();
     const downloadQr = vi.fn();
     const confirmReset = vi.fn(() => true);
-    await initEditor({
+    await initForTest({
       document,
       location: new URL("https://example.test/"),
       storage,
@@ -130,37 +191,37 @@ describe("editor app", () => {
     document.querySelector("#download-qr").click();
     expect(downloadQr).toHaveBeenCalledWith(document.querySelector("#qr"));
 
-    const editor = document.querySelector("#editor");
-    editor.value = "<h1>Changed</h1>";
-    editor.dispatchEvent(new window.Event("input", { bubbles: true }));
+    testEditor.input("<h1>Changed</h1>");
     document.querySelector("#reset").click();
     await Promise.resolve();
 
     expect(confirmReset).toHaveBeenCalledOnce();
-    expect(editor.value).toBe(STARTER_HTML);
+    expect(testEditor.getValue()).toBe(STARTER_HTML);
     expect(storage.getItem("htmlday-lite:draft")).toBeNull();
   });
 
-  it("replaces a reset status timer and cancels it when newer status arrives", () => {
+  it("replaces every status timer and expires newer messages after 1200ms", () => {
     vi.useFakeTimers();
     const element = document.querySelector("#save-status");
     const status = createStatusController({ element });
 
-    status.setTemporaryStatus("Starter restored.");
+    status.setStatus("Starter restored.");
     vi.advanceTimersByTime(900);
-    status.setTemporaryStatus("Starter restored.");
+    status.setStatus("QR link copied.");
     vi.advanceTimersByTime(900);
-    expect(element.textContent).toBe("Starter restored.");
+    expect(element.textContent).toBe("QR link copied.");
 
     status.setStatus("Saved on this device.");
-    vi.advanceTimersByTime(500);
+    vi.advanceTimersByTime(1199);
     expect(element.textContent).toBe("Saved on this device.");
+    vi.advanceTimersByTime(1);
+    expect(element.textContent).toBe("");
     vi.useRealTimers();
   });
 
   it("clears the reset message after 1200ms", async () => {
     vi.useFakeTimers();
-    await initEditor({
+    await initForTest({
       document,
       location: new URL("https://example.test/"),
       storage: memoryStorage(),

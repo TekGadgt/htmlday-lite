@@ -1,4 +1,5 @@
 import { createTakeaway } from "./artifact.js";
+import { createCodeEditor } from "./code-editor.js";
 import { createPreviewDocument } from "./preview.js";
 import { STARTER_HTML } from "./starter.js";
 import { clearDraft, loadDraft, saveDraft } from "./storage.js";
@@ -21,8 +22,9 @@ export async function initEditor({
   downloadQr,
   confirmReset,
   creatorQr,
+  createEditor = createCodeEditor,
 }) {
-  const editor = required(document, "#editor");
+  const editorMount = required(document, "#editor");
   const reset = required(document, "#reset");
   const preview = required(document, "#preview");
   initPreviewFocusIndicator(preview);
@@ -42,14 +44,15 @@ export async function initEditor({
   let renderGeneration = 0;
   let currentHtml = "";
   let currentTakeaway;
+  let editor;
 
-  async function update(html, { persist = false } = {}) {
+  async function update(html, { persist = false, syncEditor = true } = {}) {
     const takeaway = createTakeaway(html, receiverUrl);
     const generation = ++renderGeneration;
     currentHtml = html;
     currentTakeaway = takeaway;
 
-    editor.value = html;
+    if (syncEditor) editor.setValue(html);
     preview.srcdoc = createPreviewDocument(html, { allowScripts: true });
     budgetValue.textContent = `${takeaway.urlCharacters} / ${takeaway.budget}`;
     budgetProgress.max = takeaway.budget;
@@ -76,11 +79,13 @@ export async function initEditor({
   }
 
   const html = loadDraft(storage, STARTER_HTML);
-  await update(html);
-
-  editor.addEventListener("input", () => {
-    void update(editor.value, { persist: true });
+  editor = createEditor({
+    parent: editorMount,
+    initialValue: html,
+    onChange: (value) =>
+      void update(value, { persist: true, syncEditor: false }),
   });
+  await update(html, { syncEditor: false });
 
   copyLink.addEventListener("click", async () => {
     try {
@@ -99,7 +104,7 @@ export async function initEditor({
   reset.addEventListener("click", () => {
     if (!confirmReset()) return;
     clearDraft(storage);
-    status.setTemporaryStatus("Starter restored.");
+    status.setStatus("Starter restored.");
     void update(STARTER_HTML);
   });
 }

@@ -21,17 +21,18 @@ function visibleHeight({ top, bottom }, viewportHeight) {
 test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   await page.goto("/");
 
-  const editor = page.getByLabel("HTML source");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
   await expect(page.locator("#save-status")).toBeHidden();
   await expect(
     page.getByText("Don’t open someone else’s HTML Day Lite link."),
   ).toBeVisible();
-  await expect(editor).toHaveValue(/Your name/);
+  await expect(editor).toContainText(/Your name/);
   await expect(
     page.frameLocator("#preview").getByRole("heading", { level: 1 }),
   ).toHaveText("Your name");
 
   await editor.fill(CUSTOM_HTML);
+  await expect(page.locator("#preview")).toHaveCount(1);
   await expect(
     page.frameLocator("#preview").getByRole("heading", { level: 1 }),
   ).toHaveText("Hello, ocean!");
@@ -60,7 +61,39 @@ test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   expect(qrBytes.subarray(1, 4).toString()).toBe("PNG");
 
   await page.reload();
-  await expect(editor).toHaveValue(CUSTOM_HTML);
+  await expect(editor).toContainText("Hello, ocean!");
+});
+
+test("renders highlighted HTML and keeps skip-link keyboard focus", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await expect(page.locator("#editor .cm-line span").first()).toBeVisible();
+  const skipLink = page.getByRole("link", { name: "Skip to the HTML editor" });
+  await skipLink.focus();
+  await skipLink.press("Enter");
+  await expect(
+    page.getByRole("textbox", { name: "HTML source" }),
+  ).toBeFocused();
+
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.press("ControlOrMeta+A");
+  await editor.fill("<h1>First edit</h1>");
+  await editor.press("ControlOrMeta+A");
+  await editor.fill("<h1>Changed</h1>");
+  await expect(page.locator("#preview")).toHaveCount(1);
+  const changedPreview = page.frameLocator("#preview");
+  await expect(changedPreview.getByRole("heading", { level: 1 })).toHaveText(
+    "Changed",
+  );
+  await expect(page.locator("#budget-value")).toContainText("/ 900");
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Reset starter" }).click();
+  await expect(
+    page.getByRole("textbox", { name: "HTML source" }),
+  ).toContainText("Your name");
 });
 
 test("opens the exact receiver fragment and downloads identical HTML", async ({
@@ -103,6 +136,27 @@ test("opens the exact receiver fragment and downloads identical HTML", async ({
   expect(download.suggestedFilename()).toBe("my-tiny-website.html");
   const path = await download.path();
   expect(await readFile(path, "utf8")).toBe(CUSTOM_HTML);
+});
+
+test("shows CSS color pickers and sends picker edits through the editor", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  const replacement =
+    '<style>body { color: #bdefff; }</style><p style="background: #132238">Hello</p>';
+  await editor.fill(replacement);
+
+  await expect(editor).toHaveText(replacement);
+  const pickers = page.locator('#editor input[type="color"]');
+  await expect(pickers).toHaveCount(2);
+  await pickers.first().fill("#ff5c8a");
+  await expect(editor).toContainText("#ff5c8a");
+  await expect(page.frameLocator("#preview").locator("body")).toHaveCSS(
+    "color",
+    "rgb(255, 92, 138)",
+  );
+  await expect(page.getByText("Saved on this device.")).toBeVisible();
 });
 
 test("explains invalid receiver links without enabling actions", async ({
@@ -152,12 +206,25 @@ test("keeps editor and preview first-viewport usable on desktop", async ({
       const previewArea = document
         .querySelector("#preview")
         ?.getBoundingClientRect();
+      const editorPanel = document
+        .querySelector(".editor-panel")
+        ?.getBoundingClientRect();
+      const previewPanel = document
+        .querySelector(".preview-panel")
+        ?.getBoundingClientRect();
       const overflow = {
         viewport: window.innerWidth,
         content: document.documentElement.scrollWidth,
       };
 
-      if (!editorHeading || !previewHeading || !editorArea || !previewArea) {
+      if (
+        !editorHeading ||
+        !previewHeading ||
+        !editorArea ||
+        !previewArea ||
+        !editorPanel ||
+        !previewPanel
+      ) {
         return { error: "missing elements" };
       }
 
@@ -170,6 +237,8 @@ test("keeps editor and preview first-viewport usable on desktop", async ({
         },
         editorArea,
         previewArea,
+        editorPanel,
+        previewPanel,
         viewportSize: { width: window.innerWidth, height: window.innerHeight },
       };
     });
@@ -208,6 +277,14 @@ test("keeps editor and preview first-viewport usable on desktop", async ({
     expect(editorVisible).toBeGreaterThanOrEqual(240);
     expect(previewVisible).toBeGreaterThanOrEqual(240);
     expect(editorVisible).toBeGreaterThanOrEqual(previewVisible);
+    expect(metrics.editorPanel.height).toBeCloseTo(
+      metrics.previewPanel.height,
+      0,
+    );
+    expect(metrics.previewArea.height).toBeCloseTo(
+      metrics.editorArea.height,
+      0,
+    );
   }
 });
 
