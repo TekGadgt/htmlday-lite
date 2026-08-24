@@ -26,7 +26,7 @@ export async function initEditor({
 }) {
   const editorMount = required(document, "#editor");
   const reset = required(document, "#reset");
-  let preview = required(document, "#preview");
+  const preview = required(document, "#preview");
   initPreviewFocusIndicator(preview);
   const saveStatus = required(document, "#save-status");
   const status = createStatusController({ element: saveStatus });
@@ -45,40 +45,6 @@ export async function initEditor({
   let currentHtml = "";
   let currentTakeaway;
   let editor;
-  let previewUpdateQueued = false;
-  let pendingPreviewDocument = "";
-
-  function updatePreview(documentHtml) {
-    pendingPreviewDocument = documentHtml;
-    if (previewUpdateQueued) return;
-
-    previewUpdateQueued = true;
-    Promise.resolve().then(() => {
-      previewUpdateQueued = false;
-      const wasFocused = document.activeElement === preview;
-      const nextDocument = pendingPreviewDocument;
-      const nextPreview = document.createElement("iframe");
-      for (const attribute of preview.attributes) {
-        nextPreview.setAttribute(attribute.name, attribute.value);
-      }
-
-      // Remove the old browsing context before exposing the new one. Mobile
-      // Chrome can keep the old srcdoc document in the frame tree while a
-      // same-element navigation is still settling.
-      const previewParent = preview.parentElement;
-      preview.srcdoc = "";
-      if (previewParent) {
-        for (const frame of previewParent.querySelectorAll(":scope > iframe")) {
-          frame.remove();
-        }
-        previewParent.append(nextPreview);
-      }
-      preview = nextPreview;
-      initPreviewFocusIndicator(preview);
-      if (wasFocused) preview.focus();
-      preview.srcdoc = nextDocument;
-    });
-  }
 
   async function update(html, { persist = false } = {}) {
     const takeaway = createTakeaway(html, receiverUrl);
@@ -87,7 +53,7 @@ export async function initEditor({
     currentTakeaway = takeaway;
 
     editor.setValue(html);
-    updatePreview(createPreviewDocument(html, { allowScripts: true }));
+    preview.srcdoc = createPreviewDocument(html, { allowScripts: true });
     budgetValue.textContent = `${takeaway.urlCharacters} / ${takeaway.budget}`;
     budgetProgress.max = takeaway.budget;
     budgetProgress.value = Math.min(takeaway.urlCharacters, takeaway.budget);

@@ -147,9 +147,13 @@ test("shows CSS color pickers and sends picker edits through the editor", async 
 }) => {
   await page.goto("/");
   const editor = page.getByRole("textbox", { name: "HTML source" });
-  await editor.fill(
-    '<style>body { color: #bdefff; }</style><p style="background: #132238">Hello</p>',
-  );
+  const pickerHtml =
+    '<style>body { color: #bdefff; }</style><p style="background: #132238">Hello</p>' +
+    Array.from(
+      { length: 200 },
+      (_, index) => `<p>Section ${index + 1}</p>`,
+    ).join("");
+  await editor.fill(pickerHtml);
 
   const pickers = page.locator('#editor input[type="color"]');
   await expect(pickers).toHaveCount(2);

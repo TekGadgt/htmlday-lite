@@ -132,11 +132,13 @@ describe("editor app", () => {
       confirmReset: () => true,
     });
 
+    const initialPreview = document.querySelector("#preview");
     testEditor.input("<h1>First</h1>");
     testEditor.input("<h1>Second</h1>");
     await Promise.resolve();
 
     expect(document.querySelectorAll("iframe")).toHaveLength(1);
+    expect(document.querySelector("#preview")).toBe(initialPreview);
     expect(document.querySelector("#preview").srcdoc).toContain("Second");
   });
 
