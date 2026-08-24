@@ -47,6 +47,14 @@ const editorTheme = EditorView.theme(
 export function createCodeEditor({ parent, initialValue = "", onChange }) {
   if (!parent) throw new Error("A parent element is required");
 
+  const labelColorPickers = () => {
+    parent
+      .querySelectorAll(`.${wrapperClassName} input[type="color"]`)
+      .forEach((input, index) => {
+        input.setAttribute("aria-label", `CSS color picker ${index + 1}`);
+      });
+  };
+
   const view = new EditorView({
     state: EditorState.create({
       doc: initialValue,
@@ -69,12 +77,19 @@ export function createCodeEditor({ parent, initialValue = "", onChange }) {
             )
           ) {
             onChange?.(update.state.doc.toString());
+            update.view.focus();
           }
         }),
       ],
     }),
     parent,
   });
+
+  labelColorPickers();
+  const colorPickerObserver = new globalThis.MutationObserver(
+    labelColorPickers,
+  );
+  colorPickerObserver.observe(parent, { childList: true, subtree: true });
 
   parent.tabIndex = -1;
   const focusEditor = () => view.focus();
@@ -91,6 +106,7 @@ export function createCodeEditor({ parent, initialValue = "", onChange }) {
     },
     focus: () => view.focus(),
     destroy: () => {
+      colorPickerObserver.disconnect();
       parent.removeEventListener("focus", focusEditor);
       view.destroy();
     },

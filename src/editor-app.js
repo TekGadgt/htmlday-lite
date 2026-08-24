@@ -56,6 +56,7 @@ export async function initEditor({
     Promise.resolve().then(() => {
       previewUpdateQueued = false;
       const wasFocused = document.activeElement === preview;
+      const nextDocument = pendingPreviewDocument;
       const nextPreview = document.createElement("iframe");
       for (const attribute of preview.attributes) {
         nextPreview.setAttribute(attribute.name, attribute.value);
@@ -65,12 +66,17 @@ export async function initEditor({
       // Chrome can keep the old srcdoc document in the frame tree while a
       // same-element navigation is still settling.
       const previewParent = preview.parentElement;
-      preview.remove();
-      previewParent?.append(nextPreview);
+      preview.srcdoc = "";
+      if (previewParent) {
+        for (const frame of previewParent.querySelectorAll(":scope > iframe")) {
+          frame.remove();
+        }
+        previewParent.append(nextPreview);
+      }
       preview = nextPreview;
       initPreviewFocusIndicator(preview);
       if (wasFocused) preview.focus();
-      preview.srcdoc = pendingPreviewDocument;
+      preview.srcdoc = nextDocument;
     });
   }
 

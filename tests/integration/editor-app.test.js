@@ -122,6 +122,24 @@ describe("editor app", () => {
     expect(renderQr).toHaveBeenCalledOnce();
   });
 
+  it("keeps exactly one preview frame when updates are queued together", async () => {
+    await initForTest({
+      document,
+      location: new URL("https://example.test/"),
+      storage: memoryStorage(),
+      clipboard: { writeText: vi.fn() },
+      renderQr: vi.fn().mockResolvedValue(undefined),
+      confirmReset: () => true,
+    });
+
+    testEditor.input("<h1>First</h1>");
+    testEditor.input("<h1>Second</h1>");
+    await Promise.resolve();
+
+    expect(document.querySelectorAll("iframe")).toHaveLength(1);
+    expect(document.querySelector("#preview").srcdoc).toContain("Second");
+  });
+
   it("copies the current link, downloads the page, and confirms before reset", async () => {
     const storage = memoryStorage();
     const clipboard = { writeText: vi.fn().mockResolvedValue(undefined) };
