@@ -1,6 +1,8 @@
 import { basicSetup } from "codemirror";
 import { EditorState, Annotation } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { html } from "@codemirror/lang-html";
 import {
   colorPicker,
@@ -9,6 +11,26 @@ import {
 } from "@replit/codemirror-css-color-picker";
 
 const programmaticChange = Annotation.define();
+
+const syntaxTheme = HighlightStyle.define([
+  { tag: tags.angleBracket, color: "#ffd84d" },
+  { tag: tags.tagName, color: "#55c7ff", fontWeight: "700" },
+  { tag: tags.attributeName, color: "#c7a4ff" },
+  { tag: tags.string, color: "#7de2a8" },
+  { tag: tags.comment, color: "#a9a096", fontStyle: "italic" },
+  { tag: tags.number, color: "#ff5c8a" },
+  {
+    tag: [tags.keyword, tags.atom, tags.bool],
+    color: "#ff5c8a",
+    fontWeight: "700",
+  },
+  { tag: [tags.propertyName, tags.variableName], color: "#55c7ff" },
+  {
+    tag: [tags.typeName, tags.className, tags.definition(tags.typeName)],
+    color: "#c7a4ff",
+  },
+  { tag: [tags.operator, tags.punctuation], color: "#fffdf5" },
+]);
 
 const editorTheme = EditorView.theme(
   {
@@ -26,19 +48,60 @@ const editorTheme = EditorView.theme(
     ".cm-gutters": {
       color: "#a9a096",
       backgroundColor: "#211d19",
-      border: "0",
+      borderRight: "3px solid #17130f",
       paddingLeft: "0.5rem",
     },
-    ".cm-activeLine, .cm-activeLineGutter": { backgroundColor: "#302a24" },
-    ".cm-selectionBackground, ::selection": { backgroundColor: "#5a3a49" },
+    ".cm-gutterElement": { minWidth: "2.5rem", padding: "0 0.5rem" },
+    ".cm-activeLine": {
+      backgroundColor: "#302a24",
+      textDecoration: "underline 2px #ffd84d",
+    },
+    ".cm-activeLineGutter": {
+      color: "#17130f",
+      backgroundColor: "#ffd84d",
+      fontWeight: "900",
+      borderLeft: "3px solid #ff5c8a",
+    },
+    ".cm-selectionBackground, ::selection": {
+      backgroundColor: "#ff5c8a",
+      color: "#17130f",
+    },
     ".cm-cursor, .cm-dropCursor": { borderLeftColor: "#ff5c8a" },
+    ".cm-matchingBracket": {
+      color: "#17130f !important",
+      backgroundColor: "#ffd84d",
+      outline: "2px solid #ffd84d",
+    },
+    ".cm-nonmatchingBracket": { color: "#fffdf5", backgroundColor: "#ff5c8a" },
+    ".cm-foldPlaceholder": {
+      color: "#17130f",
+      backgroundColor: "#c7a4ff",
+      border: "2px solid #17130f",
+      borderRadius: "0",
+      padding: "0 0.35rem",
+    },
     [`.${wrapperClassName}`]: {
       outlineColor: "#ffd84d",
-      borderRadius: "2px",
+      borderRadius: "0",
+      backgroundColor: "#ffd84d",
+      border: "2px solid #17130f",
     },
     [`.${wrapperClassName} input[type="color"]`]: {
       outline: "2px solid #211d19",
       outlineOffset: "-2px",
+      border: "2px solid #17130f",
+      borderRadius: "0",
+    },
+    "@media (forced-colors: active)": {
+      ".cm-activeLine, .cm-activeLineGutter": {
+        backgroundColor: "Highlight",
+        color: "HighlightText",
+        textDecoration: "underline",
+      },
+      ".cm-selectionBackground": { backgroundColor: "Highlight" },
+      ".cm-matchingBracket, .cm-foldPlaceholder": {
+        border: "2px solid ButtonText",
+      },
     },
   },
   { dark: true },
@@ -61,6 +124,7 @@ export function createCodeEditor({ parent, initialValue = "", onChange }) {
       extensions: [
         basicSetup,
         html(),
+        syntaxHighlighting(syntaxTheme),
         colorPicker,
         colorPickerTheme,
         editorTheme,

@@ -96,6 +96,43 @@ test("renders highlighted HTML and keeps skip-link keyboard focus", async ({
   ).toContainText("Your name");
 });
 
+test("shows the neobrutalist editor palette and structural markers", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.fill(
+    '<!-- note --><style>body { color: #ff5c8a; }</style><h1 class="title">Hello</h1>',
+  );
+
+  const styles = await page.locator("#editor").evaluate((root) => {
+    const colors = [...root.querySelectorAll(".cm-line span")].map(
+      (node) => window.getComputedStyle(node).color,
+    );
+    return {
+      colors,
+      gutterBorder: window.getComputedStyle(root.querySelector(".cm-gutters"))
+        .borderRightColor,
+      activeLine: window.getComputedStyle(root.querySelector(".cm-activeLine"))
+        .textDecorationLine,
+      pickerRadius: window.getComputedStyle(
+        root.querySelector('input[type="color"]'),
+      ).borderTopLeftRadius,
+    };
+  });
+
+  expect(styles.colors).toEqual(
+    expect.arrayContaining([
+      "rgb(255, 216, 77)",
+      "rgb(85, 199, 255)",
+      "rgb(125, 226, 168)",
+    ]),
+  );
+  expect(styles.gutterBorder).toBe("rgb(23, 19, 15)");
+  expect(styles.activeLine).toContain("underline");
+  expect(styles.pickerRadius).toBe("0px");
+});
+
 test("opens the exact receiver fragment and downloads identical HTML", async ({
   page,
 }) => {

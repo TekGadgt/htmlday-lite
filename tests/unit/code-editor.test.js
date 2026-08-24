@@ -62,4 +62,24 @@ describe("code editor adapter", () => {
     expect(parent.querySelector(".cm-content")).toBe(document.activeElement);
     editor.destroy();
   });
+
+  it("installs the HTML Day syntax palette and editor chrome", () => {
+    const parent = document.createElement("div");
+    document.body.append(parent);
+    const editor = createCodeEditor({
+      parent,
+      initialValue:
+        '<style>body { color: #ff5c8a; }</style><h1 class="title">Hello</h1>',
+    });
+
+    const themeCss = [...document.head.querySelectorAll("style")]
+      .map((style) => style.textContent)
+      .join("\n");
+    expect(themeCss).toContain(".cm-matchingBracket");
+    expect(themeCss).toContain("#ff5c8a");
+    expect(themeCss).toContain(".cm-foldPlaceholder");
+    expect(parent.querySelector(".cm-line span")).not.toBeNull();
+
+    editor.destroy();
+  });
 });
