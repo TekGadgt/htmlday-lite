@@ -69,7 +69,9 @@ const editorTheme = EditorView.theme(
       color: "#17130f",
       backgroundColor: "#ffd84d",
       fontWeight: "900",
-      borderLeft: "3px solid #ff5c8a",
+    },
+    ".cm-foldGutter .cm-activeLineGutter": {
+      boxShadow: "inset -3px 0 0 #ff5c8a",
     },
     "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
       {
@@ -116,6 +118,9 @@ const editorTheme = EditorView.theme(
       ".cm-activeLineGutter": {
         backgroundColor: "Highlight",
         color: "HighlightText",
+      },
+      ".cm-foldGutter .cm-activeLineGutter": {
+        boxShadow: "inset -3px 0 0 Highlight",
       },
       ".cm-selectionBackground": { backgroundColor: "Highlight" },
       ".cm-matchingBracket, .cm-foldPlaceholder": {

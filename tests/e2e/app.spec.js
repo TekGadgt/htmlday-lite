@@ -117,6 +117,18 @@ test("shows the neobrutalist editor palette and structural markers", async ({
     const activeGutter = window.getComputedStyle(
       root.querySelector(".cm-activeLineGutter"),
     );
+    const activeNumber = root.querySelector(
+      ".cm-lineNumbers .cm-activeLineGutter",
+    );
+    const activeFold = root.querySelector(
+      ".cm-foldGutter .cm-activeLineGutter",
+    );
+    const activeNumberRect = activeNumber?.getBoundingClientRect();
+    const activeFoldRect = activeFold?.getBoundingClientRect();
+    const chevronRect = root
+      .querySelector(".cm-foldGutter span")
+      ?.getBoundingClientRect();
+    const activeFoldStyle = activeFold && window.getComputedStyle(activeFold);
     return {
       colors,
       background: window.getComputedStyle(root.querySelector(".cm-editor"))
@@ -133,6 +145,18 @@ test("shows the neobrutalist editor palette and structural markers", async ({
         borderLeftWidth: activeLine.borderLeftWidth,
       },
       activeGutter: { backgroundColor: activeGutter.backgroundColor },
+      activeNumber: {
+        right: activeNumberRect?.right ?? 0,
+        borderLeftWidth: activeNumber
+          ? window.getComputedStyle(activeNumber).borderLeftWidth
+          : "",
+      },
+      activeFold: {
+        left: activeFoldRect?.left ?? 0,
+        right: activeFoldRect?.right ?? 0,
+        chevronLeft: chevronRect?.left ?? 0,
+        boxShadow: activeFoldStyle?.boxShadow ?? "",
+      },
       pickerRadius: window.getComputedStyle(
         root.querySelector('input[type="color"]'),
       ).borderTopLeftRadius,
@@ -154,6 +178,10 @@ test("shows the neobrutalist editor palette and structural markers", async ({
   expect(styles.activeLine.borderLeftColor).toBe("rgb(7, 89, 133)");
   expect(styles.activeLine.borderLeftWidth).toBe("4px");
   expect(styles.activeGutter.backgroundColor).toBe("rgb(255, 216, 77)");
+  expect(styles.activeNumber.borderLeftWidth).toBe("0px");
+  expect(styles.activeNumber.right).toBeLessThan(styles.activeFold.chevronLeft);
+  expect(styles.activeFold.right).toBeGreaterThan(styles.activeFold.left);
+  expect(styles.activeFold.boxShadow).toContain("rgb(255, 92, 138)");
   expect(styles.pickerRadius).toBe("0px");
 });
 

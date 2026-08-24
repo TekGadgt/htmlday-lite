@@ -94,6 +94,18 @@ describe("code editor adapter", () => {
     expect(themeCss).toMatch(
       /\.cm-activeLineGutter \{background-color: Highlight; color: HighlightText/,
     );
+    expect(themeCss).toMatch(
+      /\.cm-activeLineGutter \{[^}]*font-weight: 900;\}/,
+    );
+    expect(themeCss).not.toMatch(
+      /\.cm-activeLineGutter \{[^}]*border-left: 3px solid #ff5c8a/,
+    );
+    expect(themeCss).toMatch(
+      /\.cm-foldGutter \.cm-activeLineGutter \{[^}]*box-shadow: inset -3px 0 0 #ff5c8a/,
+    );
+    expect(themeCss).toMatch(
+      /\.cm-foldGutter \.cm-activeLineGutter \{[^}]*box-shadow: inset -3px 0 0 Highlight/,
+    );
     expect(parent.querySelector(".cm-line span")).not.toBeNull();
 
     editor.destroy();
