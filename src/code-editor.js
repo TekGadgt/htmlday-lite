@@ -72,7 +72,7 @@ const editorTheme = EditorView.theme(
       backgroundColor: "#ffd84d",
       outline: "2px solid #ffd84d",
     },
-    ".cm-nonmatchingBracket": { color: "#fffdf5", backgroundColor: "#ff5c8a" },
+    ".cm-nonmatchingBracket": { color: "#17130f", backgroundColor: "#ff5c8a" },
     ".cm-foldPlaceholder": {
       color: "#17130f",
       backgroundColor: "#c7a4ff",

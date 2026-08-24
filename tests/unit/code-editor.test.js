@@ -76,6 +76,10 @@ describe("code editor adapter", () => {
       .map((style) => style.textContent)
       .join("\n");
     expect(themeCss).toContain(".cm-matchingBracket");
+    expect(themeCss).toContain(".cm-nonmatchingBracket");
+    expect(themeCss).toMatch(
+      /\.cm-nonmatchingBracket[^}]*color:\s*#17130f[^}]*background-color:\s*#ff5c8a/,
+    );
     expect(themeCss).toContain("#ff5c8a");
     expect(themeCss).toContain(".cm-foldPlaceholder");
     expect(parent.querySelector(".cm-line span")).not.toBeNull();
