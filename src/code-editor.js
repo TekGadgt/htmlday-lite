@@ -97,15 +97,36 @@ const editorTheme = EditorView.theme(
       padding: "0 0.35rem",
     },
     [`.${wrapperClassName}`]: {
-      outlineColor: "#ffd84d",
+      width: "1.25em",
+      height: "1.25em",
+      padding: "0",
       borderRadius: "0",
-      backgroundColor: "#ffd84d",
       border: "2px solid #17130f",
+      boxSizing: "border-box",
     },
     [`.${wrapperClassName} input[type="color"]`]: {
-      outline: "2px solid #211d19",
-      outlineOffset: "-2px",
-      border: "2px solid #17130f",
+      display: "block",
+      width: "100%",
+      height: "100%",
+      padding: "0",
+      border: "0",
+      outline: "0",
+      borderRadius: "0",
+    },
+    [`.${wrapperClassName}:focus-within`]: {
+      outline: "3px solid #ff5c8a",
+      outlineOffset: "2px",
+    },
+    [`.${wrapperClassName} input[type="color"]::-webkit-color-swatch-wrapper`]:
+      {
+        padding: "0",
+      },
+    [`.${wrapperClassName} input[type="color"]::-webkit-color-swatch`]: {
+      border: "0",
+      borderRadius: "0",
+    },
+    [`.${wrapperClassName} input[type="color"]::-moz-color-swatch`]: {
+      border: "0",
       borderRadius: "0",
     },
     "@media (forced-colors: active)": {
@@ -125,6 +146,12 @@ const editorTheme = EditorView.theme(
       ".cm-selectionBackground": { backgroundColor: "Highlight" },
       ".cm-matchingBracket, .cm-foldPlaceholder": {
         border: "2px solid ButtonText",
+      },
+      [`.${wrapperClassName}`]: {
+        borderColor: "ButtonText",
+      },
+      [`.${wrapperClassName}:focus-within`]: {
+        outlineColor: "Highlight",
       },
     },
   },

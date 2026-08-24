@@ -380,6 +380,79 @@ test("shows CSS color pickers and sends picker edits through the editor", async 
   await expect(page.getByText("Saved on this device.")).toBeVisible();
 });
 
+test("keeps color swatches clear, square, focused, and within the mobile editor", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  const replacement =
+    '<style>body { color: #bdefff; background: #132238; }</style><p style="border-color: #ffd84d">Hello</p>';
+  await editor.fill(replacement);
+  const pickers = page.locator('#editor input[type="color"]');
+  await expect(pickers.first()).toBeVisible();
+  expect(await pickers.count()).toBeGreaterThanOrEqual(3);
+  expect(
+    await pickers.evaluateAll((inputs) => inputs.map((input) => input.value)),
+  ).toEqual(expect.arrayContaining(["#bdefff", "#132238", "#ffd84d"]));
+
+  const metrics = await pickers.first().evaluate((input) => {
+    const wrapper = input.parentElement;
+    const inputStyle = window.getComputedStyle(input);
+    const wrapperStyle = window.getComputedStyle(wrapper);
+    const inputRect = input.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+    return {
+      value: input.value,
+      wrapper: {
+        width: wrapperRect.width,
+        height: wrapperRect.height,
+        border: wrapperStyle.border,
+        borderRadius: wrapperStyle.borderRadius,
+        backgroundColor: wrapperStyle.backgroundColor,
+      },
+      input: {
+        width: inputRect.width,
+        height: inputRect.height,
+        border: inputStyle.border,
+        borderWidth: inputStyle.borderWidth,
+        padding: inputStyle.padding,
+        outline: inputStyle.outline,
+        outlineStyle: inputStyle.outlineStyle,
+        outlineWidth: inputStyle.outlineWidth,
+        borderRadius: inputStyle.borderRadius,
+      },
+    };
+  });
+
+  expect(metrics.value).toBe("#bdefff");
+  expect(metrics.wrapper.width).toBeGreaterThanOrEqual(14);
+  expect(metrics.wrapper.height).toBeGreaterThanOrEqual(14);
+  expect(metrics.wrapper.width).toBe(metrics.wrapper.height);
+  expect(metrics.wrapper.border).toContain("2px");
+  expect(metrics.wrapper.border).toContain("rgb(23, 19, 15)");
+  expect(metrics.wrapper.borderRadius).toBe("0px");
+  expect(metrics.wrapper.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+  expect(metrics.input.width).toBeGreaterThanOrEqual(14);
+  expect(metrics.input.height).toBeGreaterThanOrEqual(14);
+  expect(metrics.input.borderWidth).toBe("0px");
+  expect(metrics.input.padding).toBe("0px");
+  expect(metrics.input.outlineStyle).toBe("none");
+  expect(metrics.input.outlineWidth).toBe("0px");
+  expect(metrics.input.borderRadius).toBe("0px");
+
+  await pickers.first().focus();
+  const focus = await pickers.first().evaluate((input) => {
+    const style = window.getComputedStyle(input.parentElement);
+    return { outline: style.outline, boxShadow: style.boxShadow };
+  });
+  expect(`${focus.outline} ${focus.boxShadow}`).toContain("rgb(255, 92, 138)");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
+});
+
 test("explains invalid receiver links without enabling actions", async ({
   page,
 }) => {

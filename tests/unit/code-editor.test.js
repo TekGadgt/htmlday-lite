@@ -47,6 +47,37 @@ describe("code editor adapter", () => {
     editor.destroy();
   });
 
+  it("uses one wrapper border while preserving the swatch color area", () => {
+    const parent = document.createElement("div");
+    document.body.append(parent);
+    const editor = createCodeEditor({
+      parent,
+      initialValue: "<style>body { color: #bdefff; }</style>",
+    });
+
+    const themeCss = [...document.head.querySelectorAll("style")]
+      .map((style) => style.textContent)
+      .join("\n");
+    expect(themeCss).toContain("width: 1.25em");
+    expect(themeCss).toContain("height: 1.25em");
+    expect(themeCss).toContain("border: 2px solid #17130f");
+    expect(themeCss).toContain("width: 100%");
+    expect(themeCss).toContain("height: 100%");
+    expect(themeCss).toContain("border: 0");
+    expect(themeCss).toContain("outline: 0");
+    expect(themeCss).toContain("outline: 3px solid #ff5c8a");
+    expect(themeCss).toContain("outline-offset: 2px");
+    expect(themeCss).toContain("::-webkit-color-swatch-wrapper");
+    expect(themeCss).toContain("::-moz-color-swatch");
+    const wrapperRule = themeCss.match(
+      /\.cm-css-color-picker-wrapper \{[^}]*\}/,
+    )?.[0];
+    expect(wrapperRule).toBeDefined();
+    expect(wrapperRule).not.toContain("background-color");
+
+    editor.destroy();
+  });
+
   it("returns focus to the HTML source after a picker changes the document", () => {
     const parent = document.createElement("div");
     document.body.append(parent);
