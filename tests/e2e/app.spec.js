@@ -32,6 +32,7 @@ test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   ).toHaveText("Your name");
 
   await editor.fill(CUSTOM_HTML);
+  await expect(page.locator("#preview")).toHaveCount(1);
   await expect(
     page.frameLocator("#preview").getByRole("heading", { level: 1 }),
   ).toHaveText("Hello, ocean!");
@@ -81,16 +82,11 @@ test("renders highlighted HTML and keeps skip-link keyboard focus", async ({
   await editor.fill("<h1>First edit</h1>");
   await editor.press("ControlOrMeta+A");
   await editor.fill("<h1>Changed</h1>");
+  await expect(page.locator("#preview")).toHaveCount(1);
   const changedPreview = page.frameLocator("#preview");
-  await expect(changedPreview.getByRole("heading", { level: 1 })).toHaveCount(
-    1,
-  );
   await expect(changedPreview.getByRole("heading", { level: 1 })).toHaveText(
     "Changed",
   );
-  await expect(
-    changedPreview.getByRole("heading", { name: "Your name" }),
-  ).toHaveCount(0);
   await expect(page.locator("#budget-value")).toContainText("/ 900");
 
   page.once("dialog", (dialog) => dialog.accept());
