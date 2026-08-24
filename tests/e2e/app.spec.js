@@ -157,6 +157,78 @@ test("shows the neobrutalist editor palette and structural markers", async ({
   expect(styles.pickerRadius).toBe("0px");
 });
 
+test("keeps the compact gutter readable for long documents", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  const twentyFiveLines = Array.from(
+    { length: 25 },
+    (_, index) => `<p>Line ${index + 1}</p>`,
+  ).join("\n");
+  await editor.fill(twentyFiveLines);
+
+  const metrics = await page.locator("#editor").evaluate((root) => {
+    const gutter = root.querySelector(".cm-gutters");
+    const lineNumbers = [
+      ...root.querySelectorAll(".cm-lineNumbers .cm-gutterElement"),
+    ];
+    const foldElements = [
+      ...root.querySelectorAll(".cm-foldGutter .cm-gutterElement"),
+    ];
+    const lastNumber = lineNumbers.at(-1);
+    const gutterRect = gutter.getBoundingClientRect();
+    const numberRects = lineNumbers.map((element) =>
+      element.getBoundingClientRect(),
+    );
+    const foldRects = foldElements.map((element) =>
+      element.getBoundingClientRect(),
+    );
+    return {
+      gutterWidth: gutterRect.width,
+      lineNumberVisible: lastNumber?.getBoundingClientRect().width > 0,
+      lineNumberRight: numberRects.at(-1)?.right,
+      foldLeft: foldRects[0]?.left,
+      editorWidth: root.getBoundingClientRect().width,
+      scrollWidth: root.scrollWidth,
+    };
+  });
+
+  expect(metrics.gutterWidth).toBeLessThanOrEqual(60);
+  expect(metrics.lineNumberVisible).toBe(true);
+  expect(metrics.lineNumberRight).toBeLessThanOrEqual(
+    metrics.foldLeft ?? Infinity,
+  );
+  expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.editorWidth);
+
+  const oneHundredTwentyFiveLines = Array.from(
+    { length: 125 },
+    (_, index) => `<p>Line ${index + 1}</p>`,
+  ).join("\n");
+  await editor.fill(oneHundredTwentyFiveLines);
+  await page.locator("#editor .cm-scroller").evaluate((scroller) => {
+    scroller.scrollTop = scroller.scrollHeight;
+  });
+
+  const threeDigitMetrics = await page.locator("#editor").evaluate((root) => {
+    const numberElements = [
+      ...root.querySelectorAll(".cm-lineNumbers .cm-gutterElement"),
+    ];
+    const last = numberElements.at(-1);
+    return {
+      text: last?.textContent,
+      width: last?.getBoundingClientRect().width,
+      scrollWidth: root.scrollWidth,
+      clientWidth: root.clientWidth,
+    };
+  });
+  expect(threeDigitMetrics.text).toBe("125");
+  expect(threeDigitMetrics.width).toBeGreaterThan(0);
+  expect(threeDigitMetrics.scrollWidth).toBeLessThanOrEqual(
+    threeDigitMetrics.clientWidth,
+  );
+});
+
 test("keeps the active-line marker structural in forced colors", async ({
   page,
 }) => {

@@ -91,4 +91,23 @@ describe("code editor adapter", () => {
 
     editor.destroy();
   });
+
+  it("scopes compact sizing to line-number and fold gutters", () => {
+    const parent = document.createElement("div");
+    document.body.append(parent);
+    const editor = createCodeEditor({ parent, initialValue: "<p>Hello</p>" });
+
+    const themeCss = [...document.head.querySelectorAll("style")]
+      .map((style) => style.textContent)
+      .join("\n");
+    expect(themeCss).toContain("padding-left: 0");
+    expect(themeCss).toContain(".cm-lineNumbers .cm-gutterElement");
+    expect(themeCss).toContain("min-width: 2rem");
+    expect(themeCss).toContain("padding: 0 0.35rem 0 0.25rem");
+    expect(themeCss).toContain(".cm-foldGutter .cm-gutterElement");
+    expect(themeCss).toContain("min-width: 1.25rem");
+    expect(themeCss).toContain("padding: 0 0.2rem");
+
+    editor.destroy();
+  });
 });

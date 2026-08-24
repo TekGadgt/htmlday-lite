@@ -49,9 +49,17 @@ const editorTheme = EditorView.theme(
       color: "#17130f",
       backgroundColor: "#ffd84d",
       borderRight: "3px solid #17130f",
-      paddingLeft: "0.5rem",
+      paddingLeft: "0",
     },
-    ".cm-gutterElement": { minWidth: "2.5rem", padding: "0 0.5rem" },
+    ".cm-lineNumbers .cm-gutterElement": {
+      minWidth: "2rem",
+      padding: "0 0.35rem 0 0.25rem",
+      textAlign: "right",
+    },
+    ".cm-foldGutter .cm-gutterElement": {
+      minWidth: "1.25rem",
+      padding: "0 0.2rem",
+    },
     ".cm-activeLine": {
       backgroundColor: "#e0f2fe",
       borderLeft: "4px solid #075985",
