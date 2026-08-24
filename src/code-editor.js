@@ -61,7 +61,7 @@ const editorTheme = EditorView.theme(
       padding: "0 0.2rem",
     },
     ".cm-activeLine": {
-      backgroundColor: "#e0f2fe",
+      backgroundColor: "rgba(7, 89, 133, 0.12)",
       borderLeft: "4px solid #075985",
       boxShadow: "inset 4px 0 0 #075985",
     },
@@ -71,7 +71,12 @@ const editorTheme = EditorView.theme(
       fontWeight: "900",
       borderLeft: "3px solid #ff5c8a",
     },
-    ".cm-selectionBackground, ::selection": {
+    "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
+      {
+        backgroundColor: "#ff5c8a",
+        color: "#17130f",
+      },
+    "&.cm-focused ::selection": {
       backgroundColor: "#ff5c8a",
       color: "#17130f",
     },
@@ -102,11 +107,15 @@ const editorTheme = EditorView.theme(
       borderRadius: "0",
     },
     "@media (forced-colors: active)": {
-      ".cm-activeLine, .cm-activeLineGutter": {
-        backgroundColor: "Highlight",
-        color: "HighlightText",
+      ".cm-activeLine": {
+        backgroundColor: "Canvas",
+        color: "CanvasText",
         borderLeft: "4px solid Highlight",
         boxShadow: "inset 4px 0 0 Highlight",
+      },
+      ".cm-activeLineGutter": {
+        backgroundColor: "Highlight",
+        color: "HighlightText",
       },
       ".cm-selectionBackground": { backgroundColor: "Highlight" },
       ".cm-matchingBracket, .cm-foldPlaceholder": {

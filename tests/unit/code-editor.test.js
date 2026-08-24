@@ -87,6 +87,13 @@ describe("code editor adapter", () => {
     expect(themeCss).toContain("#ff5c8a");
     expect(themeCss).toContain(".cm-foldPlaceholder");
     expect(themeCss).toContain("border-left: 4px solid #075985");
+    expect(themeCss).toContain("background-color: rgba(7, 89, 133, 0.12)");
+    expect(themeCss).toMatch(
+      /\.cm-activeLine \{background-color: Canvas; color: CanvasText; border-left: 4px solid Highlight/,
+    );
+    expect(themeCss).toMatch(
+      /\.cm-activeLineGutter \{background-color: Highlight; color: HighlightText/,
+    );
     expect(parent.querySelector(".cm-line span")).not.toBeNull();
 
     editor.destroy();

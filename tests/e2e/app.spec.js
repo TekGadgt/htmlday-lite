@@ -150,11 +150,49 @@ test("shows the neobrutalist editor palette and structural markers", async ({
   expect(styles.foreground).toBe("rgb(23, 19, 15)");
   expect(styles.gutterBorder).toBe("rgb(23, 19, 15)");
   expect(styles.activeLine.textDecoration || "").not.toContain("underline");
-  expect(styles.activeLine.backgroundColor).toBe("rgb(224, 242, 254)");
+  expect(styles.activeLine.backgroundColor).toBe("rgba(7, 89, 133, 0.12)");
   expect(styles.activeLine.borderLeftColor).toBe("rgb(7, 89, 133)");
   expect(styles.activeLine.borderLeftWidth).toBe("4px");
   expect(styles.activeGutter.backgroundColor).toBe("rgb(255, 216, 77)");
   expect(styles.pickerRadius).toBe("0px");
+});
+
+test("keeps a single-line active selection visibly highlighted", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.fill("<p>Selected line</p>\n<p>Second line</p>");
+  await editor.press("ControlOrMeta+Home");
+  await editor.press("Shift+End");
+  await expect
+    .poll(() => page.locator("#editor .cm-selectionBackground").count())
+    .toBeGreaterThan(0);
+
+  const selection = await page.locator("#editor").evaluate((root) => {
+    const range = window.getSelection();
+    const marker = root.querySelector(".cm-selectionBackground");
+    const markerStyle = marker && window.getComputedStyle(marker);
+    const markerRect = marker?.getBoundingClientRect();
+    return {
+      text: range?.toString(),
+      markerCount: root.querySelectorAll(".cm-selectionBackground").length,
+      markerWidth: markerRect?.width ?? 0,
+      markerHeight: markerRect?.height ?? 0,
+      markerBackground: markerStyle?.backgroundColor,
+    };
+  });
+
+  expect(selection.text).toContain("<p>Selected line</p>");
+  expect(selection.markerCount).toBeGreaterThan(0);
+  expect(selection.markerWidth).toBeGreaterThan(0);
+  expect(selection.markerHeight).toBeGreaterThan(0);
+  expect(selection.markerBackground).toBe("rgb(255, 92, 138)");
+
+  await editor.press("Shift+ArrowDown");
+  await expect
+    .poll(() => page.locator("#editor .cm-selectionBackground").count())
+    .toBeGreaterThan(1);
 });
 
 test("keeps the compact gutter readable for long documents", async ({
