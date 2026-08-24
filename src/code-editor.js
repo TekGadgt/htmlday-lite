@@ -13,48 +13,49 @@ import {
 const programmaticChange = Annotation.define();
 
 const syntaxTheme = HighlightStyle.define([
-  { tag: tags.angleBracket, color: "#ffd84d" },
-  { tag: tags.tagName, color: "#55c7ff", fontWeight: "700" },
-  { tag: tags.attributeName, color: "#c7a4ff" },
-  { tag: tags.string, color: "#7de2a8" },
-  { tag: tags.comment, color: "#a9a096", fontStyle: "italic" },
-  { tag: tags.number, color: "#ff5c8a" },
+  { tag: tags.angleBracket, color: "#075985" },
+  { tag: tags.tagName, color: "#075985", fontWeight: "700" },
+  { tag: tags.attributeName, color: "#6b21a8" },
+  { tag: tags.string, color: "#166534" },
+  { tag: tags.comment, color: "#57534e", fontStyle: "italic" },
+  { tag: tags.number, color: "#9f1239" },
   {
     tag: [tags.keyword, tags.atom, tags.bool],
-    color: "#ff5c8a",
+    color: "#9f1239",
     fontWeight: "700",
   },
-  { tag: [tags.propertyName, tags.variableName], color: "#55c7ff" },
+  { tag: [tags.propertyName, tags.variableName], color: "#075985" },
   {
     tag: [tags.typeName, tags.className, tags.definition(tags.typeName)],
-    color: "#c7a4ff",
+    color: "#6b21a8",
   },
-  { tag: [tags.operator, tags.punctuation], color: "#fffdf5" },
+  { tag: [tags.operator, tags.punctuation], color: "#17130f" },
 ]);
 
 const editorTheme = EditorView.theme(
   {
     "&": {
-      color: "#f8f5e8",
-      backgroundColor: "#211d19",
+      color: "#17130f",
+      backgroundColor: "#fffdf5",
       fontSize: "0.95rem",
     },
     ".cm-content": {
-      caretColor: "#ffd84d",
+      caretColor: "#ff5c8a",
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
       padding: "1rem",
       tabSize: "2",
     },
     ".cm-gutters": {
-      color: "#a9a096",
-      backgroundColor: "#211d19",
+      color: "#17130f",
+      backgroundColor: "#ffd84d",
       borderRight: "3px solid #17130f",
       paddingLeft: "0.5rem",
     },
     ".cm-gutterElement": { minWidth: "2.5rem", padding: "0 0.5rem" },
     ".cm-activeLine": {
-      backgroundColor: "#302a24",
-      textDecoration: "underline 2px #ffd84d",
+      backgroundColor: "#e0f2fe",
+      borderLeft: "4px solid #075985",
+      boxShadow: "inset 4px 0 0 #075985",
     },
     ".cm-activeLineGutter": {
       color: "#17130f",
@@ -96,7 +97,8 @@ const editorTheme = EditorView.theme(
       ".cm-activeLine, .cm-activeLineGutter": {
         backgroundColor: "Highlight",
         color: "HighlightText",
-        textDecoration: "underline",
+        borderLeft: "4px solid Highlight",
+        boxShadow: "inset 4px 0 0 Highlight",
       },
       ".cm-selectionBackground": { backgroundColor: "Highlight" },
       ".cm-matchingBracket, .cm-foldPlaceholder": {
@@ -104,7 +106,7 @@ const editorTheme = EditorView.theme(
       },
     },
   },
-  { dark: true },
+  { dark: false },
 );
 
 export function createCodeEditor({ parent, initialValue = "", onChange }) {

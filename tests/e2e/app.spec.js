@@ -34,7 +34,9 @@ test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   await editor.fill(CUSTOM_HTML);
   await expect(page.locator("#preview")).toHaveCount(1);
   await expect(
-    page.frameLocator("#preview").getByRole("heading", { level: 1 }),
+    page
+      .frameLocator("#preview")
+      .getByRole("heading", { level: 1, name: "Hello, ocean!" }),
   ).toHaveText("Hello, ocean!");
   const editorPreview = page.frameLocator("#preview");
   await editorPreview.getByRole("button", { name: "Change it" }).click();
@@ -109,12 +111,28 @@ test("shows the neobrutalist editor palette and structural markers", async ({
     const colors = [...root.querySelectorAll(".cm-line span")].map(
       (node) => window.getComputedStyle(node).color,
     );
+    const activeLine = window.getComputedStyle(
+      root.querySelector(".cm-activeLine"),
+    );
+    const activeGutter = window.getComputedStyle(
+      root.querySelector(".cm-activeLineGutter"),
+    );
     return {
       colors,
+      background: window.getComputedStyle(root.querySelector(".cm-editor"))
+        .backgroundColor,
+      foreground: window.getComputedStyle(root.querySelector(".cm-editor"))
+        .color,
       gutterBorder: window.getComputedStyle(root.querySelector(".cm-gutters"))
         .borderRightColor,
-      activeLine: window.getComputedStyle(root.querySelector(".cm-activeLine"))
-        .textDecorationLine,
+      activeLine: {
+        textDecoration:
+          activeLine.textDecoration || activeLine.textDecorationLine || "",
+        backgroundColor: activeLine.backgroundColor,
+        borderLeftColor: activeLine.borderLeftColor,
+        borderLeftWidth: activeLine.borderLeftWidth,
+      },
+      activeGutter: { backgroundColor: activeGutter.backgroundColor },
       pickerRadius: window.getComputedStyle(
         root.querySelector('input[type="color"]'),
       ).borderTopLeftRadius,
@@ -123,14 +141,42 @@ test("shows the neobrutalist editor palette and structural markers", async ({
 
   expect(styles.colors).toEqual(
     expect.arrayContaining([
-      "rgb(255, 216, 77)",
-      "rgb(85, 199, 255)",
-      "rgb(125, 226, 168)",
+      "rgb(7, 89, 133)",
+      "rgb(22, 101, 52)",
+      "rgb(87, 83, 78)",
     ]),
   );
+  expect(styles.background).toBe("rgb(255, 253, 245)");
+  expect(styles.foreground).toBe("rgb(23, 19, 15)");
   expect(styles.gutterBorder).toBe("rgb(23, 19, 15)");
-  expect(styles.activeLine).toContain("underline");
+  expect(styles.activeLine.textDecoration || "").not.toContain("underline");
+  expect(styles.activeLine.backgroundColor).toBe("rgb(224, 242, 254)");
+  expect(styles.activeLine.borderLeftColor).toBe("rgb(7, 89, 133)");
+  expect(styles.activeLine.borderLeftWidth).toBe("4px");
+  expect(styles.activeGutter.backgroundColor).toBe("rgb(255, 216, 77)");
   expect(styles.pickerRadius).toBe("0px");
+});
+
+test("keeps the active-line marker structural in forced colors", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.emulateMedia({ forcedColors: "active" });
+  const styles = await page.locator("#editor").evaluate((root) => {
+    const activeLine = window.getComputedStyle(
+      root.querySelector(".cm-activeLine"),
+    );
+    return {
+      decoration:
+        activeLine.textDecoration || activeLine.textDecorationLine || "",
+      border: activeLine.borderLeftStyle,
+      borderWidth: activeLine.borderLeftWidth,
+    };
+  });
+
+  expect(styles.decoration).not.toContain("underline");
+  expect(styles.border).toBe("solid");
+  expect(styles.borderWidth).toBe("4px");
 });
 
 test("opens the exact receiver fragment and downloads identical HTML", async ({

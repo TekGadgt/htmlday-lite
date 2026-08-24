@@ -77,11 +77,16 @@ describe("code editor adapter", () => {
       .join("\n");
     expect(themeCss).toContain(".cm-matchingBracket");
     expect(themeCss).toContain(".cm-nonmatchingBracket");
+    expect(themeCss).toContain("background-color: #fffdf5");
+    expect(themeCss).toContain("color: #17130f");
+
+    expect(themeCss).not.toMatch(/cm-activeLine[^}]*text-decoration/);
     expect(themeCss).toMatch(
       /\.cm-nonmatchingBracket[^}]*color:\s*#17130f[^}]*background-color:\s*#ff5c8a/,
     );
     expect(themeCss).toContain("#ff5c8a");
     expect(themeCss).toContain(".cm-foldPlaceholder");
+    expect(themeCss).toContain("border-left: 4px solid #075985");
     expect(parent.querySelector(".cm-line span")).not.toBeNull();
 
     editor.destroy();
