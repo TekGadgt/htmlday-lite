@@ -1,6 +1,8 @@
 import { basicSetup } from "codemirror";
 import { EditorState, Annotation } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { html } from "@codemirror/lang-html";
 import {
   colorPicker,
@@ -10,38 +12,150 @@ import {
 
 const programmaticChange = Annotation.define();
 
+const syntaxTheme = HighlightStyle.define([
+  { tag: tags.angleBracket, color: "#075985" },
+  { tag: tags.tagName, color: "#075985", fontWeight: "700" },
+  { tag: tags.attributeName, color: "#6b21a8" },
+  { tag: tags.string, color: "#166534" },
+  { tag: tags.comment, color: "#57534e", fontStyle: "italic" },
+  { tag: tags.number, color: "#9f1239" },
+  {
+    tag: [tags.keyword, tags.atom, tags.bool],
+    color: "#9f1239",
+    fontWeight: "700",
+  },
+  { tag: [tags.propertyName, tags.variableName], color: "#075985" },
+  {
+    tag: [tags.typeName, tags.className, tags.definition(tags.typeName)],
+    color: "#6b21a8",
+  },
+  { tag: [tags.operator, tags.punctuation], color: "#17130f" },
+]);
+
 const editorTheme = EditorView.theme(
   {
     "&": {
-      color: "#f8f5e8",
-      backgroundColor: "#211d19",
+      color: "#17130f",
+      backgroundColor: "#fffdf5",
       fontSize: "0.95rem",
     },
     ".cm-content": {
-      caretColor: "#ffd84d",
+      caretColor: "#ff5c8a",
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-      padding: "1rem",
+      padding: "1rem 1rem 1rem 0.5rem",
       tabSize: "2",
     },
     ".cm-gutters": {
-      color: "#a9a096",
-      backgroundColor: "#211d19",
-      border: "0",
-      paddingLeft: "0.5rem",
+      color: "#17130f",
+      backgroundColor: "#ffd84d",
+      borderRight: "3px solid #17130f",
+      paddingLeft: "0",
     },
-    ".cm-activeLine, .cm-activeLineGutter": { backgroundColor: "#302a24" },
-    ".cm-selectionBackground, ::selection": { backgroundColor: "#5a3a49" },
+    ".cm-lineNumbers .cm-gutterElement": {
+      minWidth: "2rem",
+      padding: "0 0.35rem 0 0.25rem",
+      textAlign: "right",
+    },
+    ".cm-foldGutter .cm-gutterElement": {
+      minWidth: "1.25rem",
+      padding: "0 0.2rem",
+    },
+    ".cm-activeLine": {
+      backgroundColor: "rgba(7, 89, 133, 0.12)",
+      borderLeft: "4px solid #075985",
+      boxShadow: "inset 4px 0 0 #075985",
+    },
+    ".cm-activeLineGutter": {
+      color: "#17130f",
+      backgroundColor: "#ffd84d",
+      fontWeight: "900",
+    },
+    ".cm-foldGutter .cm-activeLineGutter": {
+      boxShadow: "inset -3px 0 0 #ff5c8a",
+    },
+    "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
+      {
+        backgroundColor: "#ff5c8a",
+        color: "#17130f",
+      },
+    "&.cm-focused ::selection": {
+      backgroundColor: "#ff5c8a",
+      color: "#17130f",
+    },
     ".cm-cursor, .cm-dropCursor": { borderLeftColor: "#ff5c8a" },
+    ".cm-matchingBracket": {
+      color: "#17130f !important",
+      backgroundColor: "#ffd84d",
+      outline: "2px solid #ffd84d",
+    },
+    ".cm-nonmatchingBracket": { color: "#17130f", backgroundColor: "#ff5c8a" },
+    ".cm-foldPlaceholder": {
+      color: "#17130f",
+      backgroundColor: "#c7a4ff",
+      border: "2px solid #17130f",
+      borderRadius: "0",
+      padding: "0 0.35rem",
+    },
     [`.${wrapperClassName}`]: {
-      outlineColor: "#ffd84d",
-      borderRadius: "2px",
+      width: "1.25em",
+      height: "1.25em",
+      padding: "0",
+      borderRadius: "0",
+      border: "2px solid #17130f",
+      boxSizing: "border-box",
     },
     [`.${wrapperClassName} input[type="color"]`]: {
-      outline: "2px solid #211d19",
-      outlineOffset: "-2px",
+      display: "block",
+      width: "100%",
+      height: "100%",
+      padding: "0",
+      border: "0",
+      outline: "0",
+      borderRadius: "0",
+    },
+    [`.${wrapperClassName}:focus-within`]: {
+      outline: "3px solid #ff5c8a",
+      outlineOffset: "2px",
+    },
+    [`.${wrapperClassName} input[type="color"]::-webkit-color-swatch-wrapper`]:
+      {
+        padding: "0",
+      },
+    [`.${wrapperClassName} input[type="color"]::-webkit-color-swatch`]: {
+      border: "0",
+      borderRadius: "0",
+    },
+    [`.${wrapperClassName} input[type="color"]::-moz-color-swatch`]: {
+      border: "0",
+      borderRadius: "0",
+    },
+    "@media (forced-colors: active)": {
+      ".cm-activeLine": {
+        backgroundColor: "Canvas",
+        color: "CanvasText",
+        borderLeft: "4px solid Highlight",
+        boxShadow: "inset 4px 0 0 Highlight",
+      },
+      ".cm-activeLineGutter": {
+        backgroundColor: "Highlight",
+        color: "HighlightText",
+      },
+      ".cm-foldGutter .cm-activeLineGutter": {
+        boxShadow: "inset -3px 0 0 Highlight",
+      },
+      ".cm-selectionBackground": { backgroundColor: "Highlight" },
+      ".cm-matchingBracket, .cm-foldPlaceholder": {
+        border: "2px solid ButtonText",
+      },
+      [`.${wrapperClassName}`]: {
+        borderColor: "ButtonText",
+      },
+      [`.${wrapperClassName}:focus-within`]: {
+        outlineColor: "Highlight",
+      },
     },
   },
-  { dark: true },
+  { dark: false },
 );
 
 export function createCodeEditor({ parent, initialValue = "", onChange }) {
@@ -61,6 +175,7 @@ export function createCodeEditor({ parent, initialValue = "", onChange }) {
       extensions: [
         basicSetup,
         html(),
+        syntaxHighlighting(syntaxTheme),
         colorPicker,
         colorPickerTheme,
         editorTheme,

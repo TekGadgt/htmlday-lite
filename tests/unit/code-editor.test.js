@@ -47,6 +47,37 @@ describe("code editor adapter", () => {
     editor.destroy();
   });
 
+  it("uses one wrapper border while preserving the swatch color area", () => {
+    const parent = document.createElement("div");
+    document.body.append(parent);
+    const editor = createCodeEditor({
+      parent,
+      initialValue: "<style>body { color: #bdefff; }</style>",
+    });
+
+    const themeCss = [...document.head.querySelectorAll("style")]
+      .map((style) => style.textContent)
+      .join("\n");
+    expect(themeCss).toContain("width: 1.25em");
+    expect(themeCss).toContain("height: 1.25em");
+    expect(themeCss).toContain("border: 2px solid #17130f");
+    expect(themeCss).toContain("width: 100%");
+    expect(themeCss).toContain("height: 100%");
+    expect(themeCss).toContain("border: 0");
+    expect(themeCss).toContain("outline: 0");
+    expect(themeCss).toContain("outline: 3px solid #ff5c8a");
+    expect(themeCss).toContain("outline-offset: 2px");
+    expect(themeCss).toContain("::-webkit-color-swatch-wrapper");
+    expect(themeCss).toContain("::-moz-color-swatch");
+    const wrapperRule = themeCss.match(
+      /\.cm-css-color-picker-wrapper \{[^}]*\}/,
+    )?.[0];
+    expect(wrapperRule).toBeDefined();
+    expect(wrapperRule).not.toContain("background-color");
+
+    editor.destroy();
+  });
+
   it("returns focus to the HTML source after a picker changes the document", () => {
     const parent = document.createElement("div");
     document.body.append(parent);
@@ -60,6 +91,73 @@ describe("code editor adapter", () => {
     picker.dispatchEvent(new globalThis.Event("change", { bubbles: true }));
 
     expect(parent.querySelector(".cm-content")).toBe(document.activeElement);
+    editor.destroy();
+  });
+
+  it("installs the HTML Day syntax palette and editor chrome", () => {
+    const parent = document.createElement("div");
+    document.body.append(parent);
+    const editor = createCodeEditor({
+      parent,
+      initialValue:
+        '<style>body { color: #ff5c8a; }</style><h1 class="title">Hello</h1>',
+    });
+
+    const themeCss = [...document.head.querySelectorAll("style")]
+      .map((style) => style.textContent)
+      .join("\n");
+    expect(themeCss).toContain(".cm-matchingBracket");
+    expect(themeCss).toContain(".cm-nonmatchingBracket");
+    expect(themeCss).toContain("background-color: #fffdf5");
+    expect(themeCss).toContain("color: #17130f");
+
+    expect(themeCss).not.toMatch(/cm-activeLine[^}]*text-decoration/);
+    expect(themeCss).toMatch(
+      /\.cm-nonmatchingBracket[^}]*color:\s*#17130f[^}]*background-color:\s*#ff5c8a/,
+    );
+    expect(themeCss).toContain("#ff5c8a");
+    expect(themeCss).toContain(".cm-foldPlaceholder");
+    expect(themeCss).toContain("border-left: 4px solid #075985");
+    expect(themeCss).toContain("background-color: rgba(7, 89, 133, 0.12)");
+    expect(themeCss).toMatch(
+      /\.cm-activeLine \{background-color: Canvas; color: CanvasText; border-left: 4px solid Highlight/,
+    );
+    expect(themeCss).toMatch(
+      /\.cm-activeLineGutter \{background-color: Highlight; color: HighlightText/,
+    );
+    expect(themeCss).toMatch(
+      /\.cm-activeLineGutter \{[^}]*font-weight: 900;\}/,
+    );
+    expect(themeCss).not.toMatch(
+      /\.cm-activeLineGutter \{[^}]*border-left: 3px solid #ff5c8a/,
+    );
+    expect(themeCss).toMatch(
+      /\.cm-foldGutter \.cm-activeLineGutter \{[^}]*box-shadow: inset -3px 0 0 #ff5c8a/,
+    );
+    expect(themeCss).toMatch(
+      /\.cm-foldGutter \.cm-activeLineGutter \{[^}]*box-shadow: inset -3px 0 0 Highlight/,
+    );
+    expect(parent.querySelector(".cm-line span")).not.toBeNull();
+
+    editor.destroy();
+  });
+
+  it("scopes compact sizing to line-number and fold gutters", () => {
+    const parent = document.createElement("div");
+    document.body.append(parent);
+    const editor = createCodeEditor({ parent, initialValue: "<p>Hello</p>" });
+
+    const themeCss = [...document.head.querySelectorAll("style")]
+      .map((style) => style.textContent)
+      .join("\n");
+    expect(themeCss).toContain("padding: 1rem 1rem 1rem 0.5rem");
+    expect(themeCss).toContain(".cm-lineNumbers .cm-gutterElement");
+    expect(themeCss).toContain("min-width: 2rem");
+    expect(themeCss).toContain("padding: 0 0.35rem 0 0.25rem");
+    expect(themeCss).toContain(".cm-foldGutter .cm-gutterElement");
+    expect(themeCss).toContain("min-width: 1.25rem");
+    expect(themeCss).toContain("padding: 0 0.2rem");
+
     editor.destroy();
   });
 });

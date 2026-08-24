@@ -34,7 +34,9 @@ test("edits, previews, saves, and downloads the QR", async ({ page }) => {
   await editor.fill(CUSTOM_HTML);
   await expect(page.locator("#preview")).toHaveCount(1);
   await expect(
-    page.frameLocator("#preview").getByRole("heading", { level: 1 }),
+    page
+      .frameLocator("#preview")
+      .getByRole("heading", { level: 1, name: "Hello, ocean!" }),
   ).toHaveText("Hello, ocean!");
   const editorPreview = page.frameLocator("#preview");
   await editorPreview.getByRole("button", { name: "Change it" }).click();
@@ -94,6 +96,277 @@ test("renders highlighted HTML and keeps skip-link keyboard focus", async ({
   await expect(
     page.getByRole("textbox", { name: "HTML source" }),
   ).toContainText("Your name");
+});
+
+test("shows the neobrutalist editor palette and structural markers", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.fill(
+    '<!-- note --><style>body { color: #ff5c8a; }</style><h1 class="title">Hello</h1>',
+  );
+
+  const styles = await page.locator("#editor").evaluate((root) => {
+    const colors = [...root.querySelectorAll(".cm-line span")].map(
+      (node) => window.getComputedStyle(node).color,
+    );
+    const activeLine = window.getComputedStyle(
+      root.querySelector(".cm-activeLine"),
+    );
+    const activeGutter = window.getComputedStyle(
+      root.querySelector(".cm-activeLineGutter"),
+    );
+    const activeNumber = root.querySelector(
+      ".cm-lineNumbers .cm-activeLineGutter",
+    );
+    const activeFold = root.querySelector(
+      ".cm-foldGutter .cm-activeLineGutter",
+    );
+    const activeNumberRect = activeNumber?.getBoundingClientRect();
+    const activeFoldRect = activeFold?.getBoundingClientRect();
+    const chevronRect = root
+      .querySelector(".cm-foldGutter span")
+      ?.getBoundingClientRect();
+    const activeFoldStyle = activeFold && window.getComputedStyle(activeFold);
+    return {
+      colors,
+      background: window.getComputedStyle(root.querySelector(".cm-editor"))
+        .backgroundColor,
+      foreground: window.getComputedStyle(root.querySelector(".cm-editor"))
+        .color,
+      gutterBorder: window.getComputedStyle(root.querySelector(".cm-gutters"))
+        .borderRightColor,
+      activeLine: {
+        textDecoration:
+          activeLine.textDecoration || activeLine.textDecorationLine || "",
+        backgroundColor: activeLine.backgroundColor,
+        borderLeftColor: activeLine.borderLeftColor,
+        borderLeftWidth: activeLine.borderLeftWidth,
+      },
+      activeGutter: { backgroundColor: activeGutter.backgroundColor },
+      activeNumber: {
+        right: activeNumberRect?.right ?? 0,
+        borderLeftWidth: activeNumber
+          ? window.getComputedStyle(activeNumber).borderLeftWidth
+          : "",
+      },
+      activeFold: {
+        left: activeFoldRect?.left ?? 0,
+        right: activeFoldRect?.right ?? 0,
+        chevronLeft: chevronRect?.left ?? 0,
+        boxShadow: activeFoldStyle?.boxShadow ?? "",
+      },
+      pickerRadius: window.getComputedStyle(
+        root.querySelector('input[type="color"]'),
+      ).borderTopLeftRadius,
+    };
+  });
+
+  expect(styles.colors).toEqual(
+    expect.arrayContaining([
+      "rgb(7, 89, 133)",
+      "rgb(22, 101, 52)",
+      "rgb(87, 83, 78)",
+    ]),
+  );
+  expect(styles.background).toBe("rgb(255, 253, 245)");
+  expect(styles.foreground).toBe("rgb(23, 19, 15)");
+  expect(styles.gutterBorder).toBe("rgb(23, 19, 15)");
+  expect(styles.activeLine.textDecoration || "").not.toContain("underline");
+  expect(styles.activeLine.backgroundColor).toBe("rgba(7, 89, 133, 0.12)");
+  expect(styles.activeLine.borderLeftColor).toBe("rgb(7, 89, 133)");
+  expect(styles.activeLine.borderLeftWidth).toBe("4px");
+  expect(styles.activeGutter.backgroundColor).toBe("rgb(255, 216, 77)");
+  expect(styles.activeNumber.borderLeftWidth).toBe("0px");
+  expect(styles.activeNumber.right).toBeLessThan(styles.activeFold.chevronLeft);
+  expect(styles.activeFold.right).toBeGreaterThan(styles.activeFold.left);
+  expect(styles.activeFold.boxShadow).toContain("rgb(255, 92, 138)");
+  expect(styles.pickerRadius).toBe("0px");
+});
+
+test("keeps a single-line active selection visibly highlighted", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.fill("<p>Selected line</p>\n<p>Second line</p>");
+  await editor.press("ControlOrMeta+Home");
+  await editor.press("Shift+End");
+  await expect
+    .poll(() => page.locator("#editor .cm-selectionBackground").count())
+    .toBeGreaterThan(0);
+
+  const selection = await page.locator("#editor").evaluate((root) => {
+    const range = window.getSelection();
+    const marker = root.querySelector(".cm-selectionBackground");
+    const markerStyle = marker && window.getComputedStyle(marker);
+    const markerRect = marker?.getBoundingClientRect();
+    return {
+      text: range?.toString(),
+      markerCount: root.querySelectorAll(".cm-selectionBackground").length,
+      markerWidth: markerRect?.width ?? 0,
+      markerHeight: markerRect?.height ?? 0,
+      markerBackground: markerStyle?.backgroundColor,
+    };
+  });
+
+  expect(selection.text).toContain("<p>Selected line</p>");
+  expect(selection.markerCount).toBeGreaterThan(0);
+  expect(selection.markerWidth).toBeGreaterThan(0);
+  expect(selection.markerHeight).toBeGreaterThan(0);
+  expect(selection.markerBackground).toBe("rgb(255, 92, 138)");
+
+  await editor.press("Shift+ArrowDown");
+  await expect
+    .poll(() => page.locator("#editor .cm-selectionBackground").count())
+    .toBeGreaterThan(1);
+});
+
+test("keeps the compact gutter readable for long documents", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  const twentyFiveLines = Array.from(
+    { length: 25 },
+    (_, index) => `<p>Line ${index + 1}</p>`,
+  ).join("\n");
+  await editor.fill(twentyFiveLines);
+
+  const metrics = await page.locator("#editor").evaluate((root) => {
+    const gutter = root.querySelector(".cm-gutters");
+    const lineNumbers = [
+      ...root.querySelectorAll(".cm-lineNumbers .cm-gutterElement"),
+    ];
+    const foldElements = [
+      ...root.querySelectorAll(".cm-foldGutter .cm-gutterElement"),
+    ];
+    const lastNumber = lineNumbers.at(-1);
+    const gutterRect = gutter.getBoundingClientRect();
+    const numberRects = lineNumbers.map((element) =>
+      element.getBoundingClientRect(),
+    );
+    const foldRects = foldElements.map((element) =>
+      element.getBoundingClientRect(),
+    );
+    return {
+      gutterWidth: gutterRect.width,
+      lineNumberVisible: lastNumber?.getBoundingClientRect().width > 0,
+      lineNumberRight: numberRects.at(-1)?.right,
+      foldLeft: foldRects[0]?.left,
+      editorWidth: root.getBoundingClientRect().width,
+      scrollWidth: root.scrollWidth,
+    };
+  });
+
+  expect(metrics.gutterWidth).toBeLessThanOrEqual(60);
+  expect(metrics.lineNumberVisible).toBe(true);
+  expect(metrics.lineNumberRight).toBeLessThanOrEqual(
+    metrics.foldLeft ?? Infinity,
+  );
+  expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.editorWidth);
+
+  const oneHundredTwentyFiveLines = Array.from(
+    { length: 125 },
+    (_, index) => `<p>Line ${index + 1}</p>`,
+  ).join("\n");
+  await editor.fill(oneHundredTwentyFiveLines);
+  await page.locator("#editor .cm-scroller").evaluate((scroller) => {
+    scroller.scrollTop = scroller.scrollHeight;
+  });
+
+  const threeDigitMetrics = await page.locator("#editor").evaluate((root) => {
+    const numberElements = [
+      ...root.querySelectorAll(".cm-lineNumbers .cm-gutterElement"),
+    ];
+    const last = numberElements.at(-1);
+    return {
+      text: last?.textContent,
+      width: last?.getBoundingClientRect().width,
+      scrollWidth: root.scrollWidth,
+      clientWidth: root.clientWidth,
+    };
+  });
+  expect(threeDigitMetrics.text).toBe("125");
+  expect(threeDigitMetrics.width).toBeGreaterThan(0);
+  expect(threeDigitMetrics.scrollWidth).toBeLessThanOrEqual(
+    threeDigitMetrics.clientWidth,
+  );
+});
+
+test("keeps code close to the compact gutter without clipping", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.fill(
+    "<p>First line</p>\n<p>Second line with enough text to exercise horizontal scrolling</p>",
+  );
+  await editor.press("ControlOrMeta+Home");
+  await editor.focus();
+
+  const metrics = await page.locator("#editor").evaluate((root) => {
+    const content = root.querySelector(".cm-content");
+    const activeLine = root.querySelector(".cm-activeLine");
+    const firstGlyph = activeLine?.querySelector("span");
+    const lines = [...root.querySelectorAll(".cm-line")];
+    const contentStyle = window.getComputedStyle(content);
+    const activeStyle = window.getComputedStyle(activeLine);
+    const glyphRect = firstGlyph?.getBoundingClientRect();
+    const lineRects = lines
+      .slice(0, 2)
+      .map((line) => line.getBoundingClientRect());
+    return {
+      gap:
+        (glyphRect?.left ?? 0) -
+        (activeLine?.getBoundingClientRect().left ?? 0),
+      contentPadding: contentStyle.padding,
+      contentPaddingLeft: contentStyle.paddingLeft,
+      markerWidth: activeStyle.borderLeftWidth,
+      markerRight:
+        (activeLine?.getBoundingClientRect().left ?? 0) +
+        Number.parseFloat(activeStyle.borderLeftWidth),
+      glyphLeft: glyphRect?.left ?? 0,
+      glyphRight: glyphRect?.right ?? 0,
+      editorRight:
+        root.querySelector(".cm-scroller")?.getBoundingClientRect().right ?? 0,
+      lineLefts: lineRects.map((rect) => rect.left),
+      pageOverflow: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+
+  expect(metrics.contentPadding).toBe("16px 16px 16px 8px");
+  expect(metrics.contentPaddingLeft).toBe("8px");
+  expect(metrics.markerWidth).toBe("4px");
+  expect(metrics.gap).toBeGreaterThanOrEqual(10);
+  expect(metrics.gap).toBeLessThanOrEqual(16);
+  expect(metrics.glyphLeft).toBeGreaterThanOrEqual(metrics.markerRight);
+  expect(metrics.glyphRight).toBeLessThanOrEqual(metrics.editorRight);
+  expect(metrics.lineLefts[0]).toBe(metrics.lineLefts[1]);
+  expect(metrics.pageOverflow).toBeLessThanOrEqual(0);
+});
+
+test("keeps the active-line marker structural in forced colors", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.emulateMedia({ forcedColors: "active" });
+  const styles = await page.locator("#editor").evaluate((root) => {
+    const activeLine = window.getComputedStyle(
+      root.querySelector(".cm-activeLine"),
+    );
+    return {
+      decoration:
+        activeLine.textDecoration || activeLine.textDecorationLine || "",
+      border: activeLine.borderLeftStyle,
+      borderWidth: activeLine.borderLeftWidth,
+    };
+  });
+
+  expect(styles.decoration).not.toContain("underline");
+  expect(styles.border).toBe("solid");
+  expect(styles.borderWidth).toBe("4px");
 });
 
 test("opens the exact receiver fragment and downloads identical HTML", async ({
@@ -157,6 +430,79 @@ test("shows CSS color pickers and sends picker edits through the editor", async 
     "rgb(255, 92, 138)",
   );
   await expect(page.getByText("Saved on this device.")).toBeVisible();
+});
+
+test("keeps color swatches clear, square, focused, and within the mobile editor", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  const replacement =
+    '<style>body { color: #bdefff; background: #132238; }</style><p style="border-color: #ffd84d">Hello</p>';
+  await editor.fill(replacement);
+  const pickers = page.locator('#editor input[type="color"]');
+  await expect(pickers.first()).toBeVisible();
+  expect(await pickers.count()).toBeGreaterThanOrEqual(3);
+  expect(
+    await pickers.evaluateAll((inputs) => inputs.map((input) => input.value)),
+  ).toEqual(expect.arrayContaining(["#bdefff", "#132238", "#ffd84d"]));
+
+  const metrics = await pickers.first().evaluate((input) => {
+    const wrapper = input.parentElement;
+    const inputStyle = window.getComputedStyle(input);
+    const wrapperStyle = window.getComputedStyle(wrapper);
+    const inputRect = input.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+    return {
+      value: input.value,
+      wrapper: {
+        width: wrapperRect.width,
+        height: wrapperRect.height,
+        border: wrapperStyle.border,
+        borderRadius: wrapperStyle.borderRadius,
+        backgroundColor: wrapperStyle.backgroundColor,
+      },
+      input: {
+        width: inputRect.width,
+        height: inputRect.height,
+        border: inputStyle.border,
+        borderWidth: inputStyle.borderWidth,
+        padding: inputStyle.padding,
+        outline: inputStyle.outline,
+        outlineStyle: inputStyle.outlineStyle,
+        outlineWidth: inputStyle.outlineWidth,
+        borderRadius: inputStyle.borderRadius,
+      },
+    };
+  });
+
+  expect(metrics.value).toBe("#bdefff");
+  expect(metrics.wrapper.width).toBeGreaterThanOrEqual(14);
+  expect(metrics.wrapper.height).toBeGreaterThanOrEqual(14);
+  expect(metrics.wrapper.width).toBe(metrics.wrapper.height);
+  expect(metrics.wrapper.border).toContain("2px");
+  expect(metrics.wrapper.border).toContain("rgb(23, 19, 15)");
+  expect(metrics.wrapper.borderRadius).toBe("0px");
+  expect(metrics.wrapper.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+  expect(metrics.input.width).toBeGreaterThanOrEqual(14);
+  expect(metrics.input.height).toBeGreaterThanOrEqual(14);
+  expect(metrics.input.borderWidth).toBe("0px");
+  expect(metrics.input.padding).toBe("0px");
+  expect(metrics.input.outlineStyle).toBe("none");
+  expect(metrics.input.outlineWidth).toBe("0px");
+  expect(metrics.input.borderRadius).toBe("0px");
+
+  await pickers.first().focus();
+  const focus = await pickers.first().evaluate((input) => {
+    const style = window.getComputedStyle(input.parentElement);
+    return { outline: style.outline, boxShadow: style.boxShadow };
+  });
+  expect(`${focus.outline} ${focus.boxShadow}`).toContain("rgb(255, 92, 138)");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
 });
 
 test("explains invalid receiver links without enabling actions", async ({

@@ -10,12 +10,18 @@ importers:
       "@codemirror/lang-html":
         specifier: 6.4.9
         version: 6.4.9
+      "@codemirror/language":
+        specifier: 6.12.4
+        version: 6.12.4
       "@codemirror/state":
         specifier: 6.7.1
         version: 6.7.1
       "@codemirror/view":
         specifier: 6.43.9
         version: 6.43.9
+      "@lezer/highlight":
+        specifier: 1.2.3
+        version: 1.2.3
       "@replit/codemirror-css-color-picker":
         specifier: 6.3.0
         version: 6.3.0(@codemirror/language@6.12.4)(@codemirror/state@6.7.1)(@codemirror/view@6.43.9)
