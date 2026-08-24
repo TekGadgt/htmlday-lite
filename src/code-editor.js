@@ -42,7 +42,7 @@ const editorTheme = EditorView.theme(
     ".cm-content": {
       caretColor: "#ff5c8a",
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-      padding: "1rem",
+      padding: "1rem 1rem 1rem 0.5rem",
       tabSize: "2",
     },
     ".cm-gutters": {

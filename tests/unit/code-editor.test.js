@@ -150,7 +150,7 @@ describe("code editor adapter", () => {
     const themeCss = [...document.head.querySelectorAll("style")]
       .map((style) => style.textContent)
       .join("\n");
-    expect(themeCss).toContain("padding-left: 0");
+    expect(themeCss).toContain("padding: 1rem 1rem 1rem 0.5rem");
     expect(themeCss).toContain(".cm-lineNumbers .cm-gutterElement");
     expect(themeCss).toContain("min-width: 2rem");
     expect(themeCss).toContain("padding: 0 0.35rem 0 0.25rem");

@@ -295,6 +295,58 @@ test("keeps the compact gutter readable for long documents", async ({
   );
 });
 
+test("keeps code close to the compact gutter without clipping", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.fill(
+    "<p>First line</p>\n<p>Second line with enough text to exercise horizontal scrolling</p>",
+  );
+  await editor.press("ControlOrMeta+Home");
+  await editor.focus();
+
+  const metrics = await page.locator("#editor").evaluate((root) => {
+    const content = root.querySelector(".cm-content");
+    const activeLine = root.querySelector(".cm-activeLine");
+    const firstGlyph = activeLine?.querySelector("span");
+    const lines = [...root.querySelectorAll(".cm-line")];
+    const contentStyle = window.getComputedStyle(content);
+    const activeStyle = window.getComputedStyle(activeLine);
+    const glyphRect = firstGlyph?.getBoundingClientRect();
+    const lineRects = lines
+      .slice(0, 2)
+      .map((line) => line.getBoundingClientRect());
+    return {
+      gap:
+        (glyphRect?.left ?? 0) -
+        (activeLine?.getBoundingClientRect().left ?? 0),
+      contentPadding: contentStyle.padding,
+      contentPaddingLeft: contentStyle.paddingLeft,
+      markerWidth: activeStyle.borderLeftWidth,
+      markerRight:
+        (activeLine?.getBoundingClientRect().left ?? 0) +
+        Number.parseFloat(activeStyle.borderLeftWidth),
+      glyphLeft: glyphRect?.left ?? 0,
+      glyphRight: glyphRect?.right ?? 0,
+      editorRight:
+        root.querySelector(".cm-scroller")?.getBoundingClientRect().right ?? 0,
+      lineLefts: lineRects.map((rect) => rect.left),
+      pageOverflow: document.documentElement.scrollWidth - window.innerWidth,
+    };
+  });
+
+  expect(metrics.contentPadding).toBe("16px 16px 16px 8px");
+  expect(metrics.contentPaddingLeft).toBe("8px");
+  expect(metrics.markerWidth).toBe("4px");
+  expect(metrics.gap).toBeGreaterThanOrEqual(10);
+  expect(metrics.gap).toBeLessThanOrEqual(16);
+  expect(metrics.glyphLeft).toBeGreaterThanOrEqual(metrics.markerRight);
+  expect(metrics.glyphRight).toBeLessThanOrEqual(metrics.editorRight);
+  expect(metrics.lineLefts[0]).toBe(metrics.lineLefts[1]);
+  expect(metrics.pageOverflow).toBeLessThanOrEqual(0);
+});
+
 test("keeps the active-line marker structural in forced colors", async ({
   page,
 }) => {
