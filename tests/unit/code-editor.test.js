@@ -27,4 +27,18 @@ describe("code editor adapter", () => {
 
     editor.destroy();
   });
+
+  it("renders color pickers for CSS in style blocks and inline styles", () => {
+    const parent = document.createElement("div");
+    document.body.append(parent);
+    const editor = createCodeEditor({
+      parent,
+      initialValue:
+        '<style>body { color: #bdefff; }</style><p style="background: #132238">Hello</p>',
+    });
+
+    expect(parent.querySelectorAll('input[type="color"]')).toHaveLength(2);
+
+    editor.destroy();
+  });
 });

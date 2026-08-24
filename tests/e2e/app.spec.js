@@ -142,6 +142,26 @@ test("opens the exact receiver fragment and downloads identical HTML", async ({
   expect(await readFile(path, "utf8")).toBe(CUSTOM_HTML);
 });
 
+test("shows CSS color pickers and sends picker edits through the editor", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.getByRole("textbox", { name: "HTML source" });
+  await editor.fill(
+    '<style>body { color: #bdefff; }</style><p style="background: #132238">Hello</p>',
+  );
+
+  const pickers = page.locator('#editor input[type="color"]');
+  await expect(pickers).toHaveCount(2);
+  await pickers.first().fill("#ff5c8a");
+  await expect(editor).toContainText("#ff5c8a");
+  await expect(page.frameLocator("#preview").locator("body")).toHaveCSS(
+    "color",
+    "rgb(255, 92, 138)",
+  );
+  await expect(page.getByText("Saved on this device.")).toBeVisible();
+});
+
 test("explains invalid receiver links without enabling actions", async ({
   page,
 }) => {
@@ -189,12 +209,25 @@ test("keeps editor and preview first-viewport usable on desktop", async ({
       const previewArea = document
         .querySelector("#preview")
         ?.getBoundingClientRect();
+      const editorPanel = document
+        .querySelector(".editor-panel")
+        ?.getBoundingClientRect();
+      const previewPanel = document
+        .querySelector(".preview-panel")
+        ?.getBoundingClientRect();
       const overflow = {
         viewport: window.innerWidth,
         content: document.documentElement.scrollWidth,
       };
 
-      if (!editorHeading || !previewHeading || !editorArea || !previewArea) {
+      if (
+        !editorHeading ||
+        !previewHeading ||
+        !editorArea ||
+        !previewArea ||
+        !editorPanel ||
+        !previewPanel
+      ) {
         return { error: "missing elements" };
       }
 
@@ -207,6 +240,8 @@ test("keeps editor and preview first-viewport usable on desktop", async ({
         },
         editorArea,
         previewArea,
+        editorPanel,
+        previewPanel,
         viewportSize: { width: window.innerWidth, height: window.innerHeight },
       };
     });
@@ -245,6 +280,14 @@ test("keeps editor and preview first-viewport usable on desktop", async ({
     expect(editorVisible).toBeGreaterThanOrEqual(240);
     expect(previewVisible).toBeGreaterThanOrEqual(240);
     expect(editorVisible).toBeGreaterThanOrEqual(previewVisible);
+    expect(metrics.editorPanel.height).toBeCloseTo(
+      metrics.previewPanel.height,
+      0,
+    );
+    expect(metrics.previewArea.height).toBeCloseTo(
+      metrics.editorArea.height,
+      0,
+    );
   }
 });
 

@@ -2,6 +2,11 @@ import { basicSetup } from "codemirror";
 import { EditorState, Annotation } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { html } from "@codemirror/lang-html";
+import {
+  colorPicker,
+  colorPickerTheme,
+  wrapperClassName,
+} from "@replit/codemirror-css-color-picker";
 
 const programmaticChange = Annotation.define();
 
@@ -27,6 +32,14 @@ const editorTheme = EditorView.theme(
     ".cm-activeLine, .cm-activeLineGutter": { backgroundColor: "#302a24" },
     ".cm-selectionBackground, ::selection": { backgroundColor: "#5a3a49" },
     ".cm-cursor, .cm-dropCursor": { borderLeftColor: "#ff5c8a" },
+    [`.${wrapperClassName}`]: {
+      outlineColor: "#ffd84d",
+      borderRadius: "2px",
+    },
+    [`.${wrapperClassName} input[type="color"]`]: {
+      outline: "2px solid #211d19",
+      outlineOffset: "-2px",
+    },
   },
   { dark: true },
 );
@@ -40,6 +53,8 @@ export function createCodeEditor({ parent, initialValue = "", onChange }) {
       extensions: [
         basicSetup,
         html(),
+        colorPicker,
+        colorPickerTheme,
         editorTheme,
         EditorView.contentAttributes.of({
           "aria-label": "HTML source",

@@ -261,6 +261,8 @@ h1 {
 
 .editor-panel {
   grid-area: editor;
+  display: flex;
+  flex-direction: column;
 }
 
 .panel-heading {
@@ -286,6 +288,7 @@ h1 {
 }
 
 #editor {
+  flex: 1;
   min-height: clamp(18rem, 44vh, 32rem);
   overflow: auto;
   background: #211d19;
@@ -316,12 +319,20 @@ iframe {
 
 .preview-panel {
   grid-area: preview;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-frame-shell {
+  flex: 1;
+  min-height: clamp(18rem, 44vh, 32rem);
 }
 
 #preview {
   display: block;
   width: 100%;
-  min-height: clamp(18rem, 44vh, 32rem);
+  height: 100%;
+  min-height: inherit;
   border: 0;
   background: white;
 }

@@ -160,20 +160,22 @@ describe("editor app", () => {
     expect(storage.getItem("htmlday-lite:draft")).toBeNull();
   });
 
-  it("replaces a reset status timer and cancels it when newer status arrives", () => {
+  it("replaces every status timer and expires newer messages after 1200ms", () => {
     vi.useFakeTimers();
     const element = document.querySelector("#save-status");
     const status = createStatusController({ element });
 
-    status.setTemporaryStatus("Starter restored.");
+    status.setStatus("Starter restored.");
     vi.advanceTimersByTime(900);
-    status.setTemporaryStatus("Starter restored.");
+    status.setStatus("QR link copied.");
     vi.advanceTimersByTime(900);
-    expect(element.textContent).toBe("Starter restored.");
+    expect(element.textContent).toBe("QR link copied.");
 
     status.setStatus("Saved on this device.");
-    vi.advanceTimersByTime(500);
+    vi.advanceTimersByTime(1199);
     expect(element.textContent).toBe("Saved on this device.");
+    vi.advanceTimersByTime(1);
+    expect(element.textContent).toBe("");
     vi.useRealTimers();
   });
 

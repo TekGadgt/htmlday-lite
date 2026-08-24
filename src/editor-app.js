@@ -131,7 +131,7 @@ export async function initEditor({
   reset.addEventListener("click", () => {
     if (!confirmReset()) return;
     clearDraft(storage);
-    status.setTemporaryStatus("Starter restored.");
+    status.setStatus("Starter restored.");
     void update(STARTER_HTML);
   });
 }
