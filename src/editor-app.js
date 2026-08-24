@@ -46,13 +46,13 @@ export async function initEditor({
   let currentTakeaway;
   let editor;
 
-  async function update(html, { persist = false } = {}) {
+  async function update(html, { persist = false, syncEditor = true } = {}) {
     const takeaway = createTakeaway(html, receiverUrl);
     const generation = ++renderGeneration;
     currentHtml = html;
     currentTakeaway = takeaway;
 
-    editor.setValue(html);
+    if (syncEditor) editor.setValue(html);
     preview.srcdoc = createPreviewDocument(html, { allowScripts: true });
     budgetValue.textContent = `${takeaway.urlCharacters} / ${takeaway.budget}`;
     budgetProgress.max = takeaway.budget;
@@ -82,9 +82,10 @@ export async function initEditor({
   editor = createEditor({
     parent: editorMount,
     initialValue: html,
-    onChange: (value) => void update(value, { persist: true }),
+    onChange: (value) =>
+      void update(value, { persist: true, syncEditor: false }),
   });
-  await update(html);
+  await update(html, { syncEditor: false });
 
   copyLink.addEventListener("click", async () => {
     try {

@@ -27,9 +27,9 @@ function createTestEditor({ initialValue, onChange }) {
   let value = initialValue;
   testEditor = {
     getValue: () => value,
-    setValue: (next) => {
+    setValue: vi.fn((next) => {
       value = next;
-    },
+    }),
     focus: vi.fn(),
     destroy: vi.fn(),
     input: (next) => {
@@ -140,6 +140,26 @@ describe("editor app", () => {
     expect(document.querySelectorAll("iframe")).toHaveLength(1);
     expect(document.querySelector("#preview")).toBe(initialPreview);
     expect(document.querySelector("#preview").srcdoc).toContain("Second");
+  });
+
+  it("does not write back to the editor during user or initial updates", async () => {
+    await initForTest({
+      document,
+      location: new URL("https://example.test/"),
+      storage: memoryStorage(),
+      clipboard: { writeText: vi.fn() },
+      renderQr: vi.fn().mockResolvedValue(undefined),
+      confirmReset: () => true,
+    });
+
+    expect(testEditor.setValue).not.toHaveBeenCalled();
+    testEditor.input("<h1>User edit</h1>");
+    await Promise.resolve();
+    expect(testEditor.setValue).not.toHaveBeenCalled();
+
+    document.querySelector("#reset").click();
+    await Promise.resolve();
+    expect(testEditor.setValue).toHaveBeenCalledWith(STARTER_HTML);
   });
 
   it("copies the current link, downloads the page, and confirms before reset", async () => {
